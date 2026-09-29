@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuriAgent - Assistente IA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Usando Marked.js para formatar Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Cabeçalho minimalista -->
+        <header class="topbar">
+            <div class="logo">
+                <span class="glow-text">SuriAgent</span>
+            </div>
+        </header>
+
+        <!-- Área de Conversa -->
+        <main class="chat-area" id="chat-history">
+            <div class="welcome-screen" id="welcome-screen">
+                <div class="sparkle-icon">
+                    <!-- Ícone de estrela brilhante (SVG) -->
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="url(#grad1)" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#9D4EDD;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#ff00dd;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M12 0C12 6.62742 17.3726 12 24 12C17.3726 12 12 17.3726 12 24C12 17.3726 6.62742 12 0 12C6.62742 12 12 6.62742 12 0Z" />
+                    </svg>
+                </div>
+                <h2>Como posso ajudar?</h2>
+            </div>
+        </main>
+
+        <!-- Área de Input Flutuante -->
+        <div class="input-container">
+            <form id="chat-form" class="chat-form">
+                <button type="button" class="icon-btn action-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <input type="text" id="user-input" placeholder="Faça uma pergunta..." autocomplete="off" required>
+                <button type="submit" class="icon-btn submit-btn" id="send-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+            <p class="disclaimer">SuriAgent pode cometer erros. Verifique o que está sendo gerado.</p>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

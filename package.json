@@ -1,0 +1,19 @@
+{
+  "name": "suri-agent",
+  "version": "1.0.0",
+  "description": "Sistema Estudantil de Suporte Dev e Configuração via IA",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/genai": "^2.24.0",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "sqlite3": "^6.0.1"
+  }
+}

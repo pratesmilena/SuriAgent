@@ -1,58 +1,59 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuriAgent - Assistente IA</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#111714">
+    <title>AgenteSuri · Sua escola mais perto</title>
+    <link rel="stylesheet" href="/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
-    <!-- Usando Marked.js para formatar Markdown -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script defer src="/vendor/bootstrap.bundle.min.js"></script>
+    <script defer src="/vendor/marked.umd.js"></script>
+    <script defer src="/vendor/purify.min.js"></script>
+    <script defer src="app.js"></script>
 </head>
 <body>
-    <div class="app-layout">
-        <!-- Cabeçalho minimalista -->
-        <header class="topbar">
-            <div class="logo">
-                <span class="glow-text">SuriAgent</span>
-            </div>
+    <a class="visually-hidden-focusable skip-link" href="#main-content">Pular para o conteúdo</a>
+    <div class="container-xxl app-shell">
+        <header class="d-flex align-items-center justify-content-between flex-wrap gap-3 topbar">
+            <a class="brand text-decoration-none" href="/" aria-label="AgenteSuri, início"><span class="brand-symbol" aria-hidden="true">s<span>✦</span></span><span>Agente<span class="text-green">Suri</span><small>REPÚBLICA DO SURINAME</small></span></a>
+            <span class="school-badge"><span class="status-dot" aria-hidden="true"></span> Seu ponto de encontro com a escola</span>
         </header>
-
-        <!-- Área de Conversa -->
-        <main class="chat-area" id="chat-history">
-            <div class="welcome-screen" id="welcome-screen">
-                <div class="sparkle-icon">
-                    <!-- Ícone de estrela brilhante (SVG) -->
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="url(#grad1)" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#9D4EDD;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#ff00dd;stop-opacity:1" />
-                            </linearGradient>
-                        </defs>
-                        <path d="M12 0C12 6.62742 17.3726 12 24 12C17.3726 12 12 17.3726 12 24C12 17.3726 6.62742 12 0 12C6.62742 12 12 6.62742 12 0Z" />
-                    </svg>
+        <main id="main-content" class="row g-4 main-layout">
+            <aside class="col-lg-3">
+                <div class="sidebar">
+                    <p class="eyebrow">ESPAÇO DO ESTUDANTE</p>
+                    <nav class="nav nav-pills flex-lg-column gap-2" id="workspace-tabs" role="tablist" aria-label="Ferramentas da escola">
+                        <button class="nav-link active" id="horarios-tab" data-bs-toggle="pill" data-bs-target="#horarios-panel" type="button" role="tab" aria-controls="horarios-panel" aria-selected="true"><span aria-hidden="true">▦</span> Horários de aula <span class="nav-arrow" aria-hidden="true">→</span></button>
+                        <button class="nav-link" id="chat-tab" data-bs-toggle="pill" data-bs-target="#chat-panel" type="button" role="tab" aria-controls="chat-panel" aria-selected="false"><span aria-hidden="true">✧</span> Assistente Suri <span class="nav-arrow" aria-hidden="true">→</span></button>
+                    </nav>
+                    <div class="sidebar-note"><span class="note-icon" aria-hidden="true">✳</span><h2>Mais tempo para aprender.</h2><p>Encontre suas aulas e tire dúvidas em um só lugar.</p><span class="badge rounded-pill">FEITO PARA A NOSSA ESCOLA</span></div>
+                    <p class="sidebar-footer">Aprender conecta.<br><strong>O Suri aproxima.</strong></p>
                 </div>
-                <h2>Como posso ajudar?</h2>
+            </aside>
+            <div class="col-lg-9 tab-content">
+                <section class="tab-pane fade show active" id="horarios-panel" role="tabpanel" aria-labelledby="horarios-tab" tabindex="0">
+                    <div class="hero-card"><div><p class="eyebrow text-green">SUA ROTINA, MAIS SIMPLES</p><h1>Qual é a próxima<br><span>aula?</span></h1><p>Seu horário escolar, sem complicação.<br>Consulte as aulas da tarde direto da base da escola.</p></div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="art-star">✦</span><span class="art-label">conecte-se ao<br>seu próximo passo.</span></div><span class="hero-index" aria-hidden="true">01 / ESCOLA EM MOVIMENTO</span></div>
+                    <div class="section-heading d-flex justify-content-between align-items-start gap-3"><div><h2>Encontre suas aulas</h2><p>Escolha sua turma e o dia que deseja consultar.</p></div><span class="period-badge">☀ &nbsp; Período da tarde</span></div>
+                    <form id="horarios-form" class="card query-card">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5"><label for="turma" class="form-label">Turma</label><input class="form-control" id="turma" name="turma" placeholder="Ex.: 3ºC (DS)" maxlength="100" aria-describedby="turma-help" required><div id="turma-help" class="form-text">Use o nome completo cadastrado na escola.</div></div>
+                            <div class="col-md-4"><label for="dia" class="form-label">Dia da semana</label><select id="dia" name="dia" class="form-select" required><option value="SEGUNDA">Segunda-feira</option><option value="TERÇA">Terça-feira</option><option value="QUARTA">Quarta-feira</option><option value="QUINTA">Quinta-feira</option><option value="SEXTA">Sexta-feira</option></select><div class="form-text">De segunda a sexta-feira.</div></div>
+                            <div class="col-md-3"><button type="submit" id="horarios-submit" class="btn btn-suri w-100">Consultar <span aria-hidden="true">→</span></button><div class="form-text d-none d-md-block" aria-hidden="true">&nbsp;</div></div>
+                        </div>
+                    </form>
+                    <div id="horarios-status" class="result-status" role="status" aria-live="polite"></div>
+                    <div id="horarios-results" aria-busy="false"><div class="empty-state"><span class="empty-icon" aria-hidden="true">▦</span><h3>Cada aula é um novo começo.</h3><p>Informe sua turma e um dia para ver a programação.</p></div></div>
+                    <p class="source-note"><span aria-hidden="true">◈</span> Fonte: horários cadastrados pela escola. Em caso de divergência, confirme com a secretaria.</p>
+                </section>
+                <section class="tab-pane fade" id="chat-panel" role="tabpanel" aria-labelledby="chat-tab" tabindex="0">
+                    <div class="section-heading"><p class="eyebrow text-green">APRENDER EM BOA COMPANHIA</p><h1>Olá, eu sou o <span class="text-purple">Suri.</span></h1><p>Seu assistente para dúvidas de programação e tecnologia.</p></div>
+                    <div class="chat-card card"><div class="chat-area" id="chat-history" role="log" aria-label="Conversa com o assistente" aria-live="polite" aria-relevant="additions text"><div class="welcome-screen" id="welcome-screen"><span class="chat-spark" aria-hidden="true">✧</span><h2>O que vamos aprender hoje?</h2><p>Conte sua dúvida ou compartilhe um erro de código.</p><p class="small">Para horários oficiais, use a aba Horários de aula.</p></div></div>
+                    <div class="input-container"><form id="chat-form" class="chat-form"><label for="user-input" class="visually-hidden">Sua mensagem para o Suri</label><input type="text" id="user-input" placeholder="Escreva sua dúvida…" autocomplete="off" maxlength="10000" required><button type="submit" class="btn btn-suri" id="send-btn" aria-label="Enviar mensagem">Enviar →</button></form><p class="disclaimer">A IA pode cometer erros. Confira as informações importantes.</p></div></div>
+                </section>
             </div>
         </main>
-
-        <!-- Área de Input Flutuante -->
-        <div class="input-container">
-            <form id="chat-form" class="chat-form">
-                <button type="button" class="icon-btn action-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                </button>
-                <input type="text" id="user-input" placeholder="Faça uma pergunta..." autocomplete="off" required>
-                <button type="submit" class="icon-btn submit-btn" id="send-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                </button>
-            </form>
-            <p class="disclaimer">SuriAgent pode cometer erros. Verifique o que está sendo gerado.</p>
-        </div>
+        <footer class="page-footer d-flex justify-content-between flex-wrap gap-2"><span>AgenteSuri · Escola Estadual República do Suriname</span><span>Conhecimento que conecta <span class="text-green" aria-hidden="true">✦</span></span></footer>
     </div>
-    <script src="app.js"></script>
 </body>
 </html>

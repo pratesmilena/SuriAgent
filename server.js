@@ -3,22 +3,39 @@ const express = require('express');
 const path = require('path');
 const db = require('./database');
 const { GoogleGenAI } = require('@google/genai');
+const { criarConsultaHorarios } = require('./horarios');
+const { rateLimit } = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '32kb' }));
+app.use('/api', rateLimit({
+    windowMs: 60000, limit: 60, standardHeaders: 'draft-8', legacyHeaders: false,
+    message: { erro: 'Muitas solicitações. Aguarde um minuto e tente novamente.' }
+}));
+const assets = {
+    '/vendor/bootstrap.min.css': 'bootstrap/dist/css/bootstrap.min.css',
+    '/vendor/bootstrap.bundle.min.js': 'bootstrap/dist/js/bootstrap.bundle.min.js',
+    '/vendor/marked.umd.js': 'marked/lib/marked.umd.js',
+    '/vendor/purify.min.js': 'dompurify/dist/purify.min.js'
+};
+for (const [route, file] of Object.entries(assets)) {
+    app.get(route, (req, res) => res.sendFile(path.join(__dirname, 'node_modules', file)));
+}
 app.use(express.static(path.join(__dirname, 'public')));
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
+app.get('/api/horarios', criarConsultaHorarios());
 
 // Endpoint para diagnosticar erro com Gemini
 app.post('/api/diagnosticar', async (req, res) => {
-    const { logErro, detalhes } = req.body;
+    const { logErro } = req.body || {};
     
-    if (!logErro) {
+    if (typeof logErro !== 'string' || !logErro.trim() || logErro.length > 10000) {
         return res.status(400).json({ erro: 'O log de erro é obrigatório.' });
     }
+    if (!ai) return res.status(503).json({ erro: 'O assistente de IA ainda não está configurado. A consulta de horários está disponível na aba Horários.' });
 
     try {
         const prompt = `Você é o SuriAgent, um Agente de Suporte Técnico experiente para estudantes de tecnologia.
@@ -35,7 +52,7 @@ Responda de forma clara, direta e amigável. Use formatação Markdown (com dest
 
         res.json({ solucao: response.text });
     } catch (error) {
-        console.error('Erro ao chamar a API do Gemini:', error);
+        console.error('Falha na API do Gemini', { status: error.status || 'indisponivel' });
         res.status(500).json({ erro: 'Ocorreu um erro ao processar sua solicitação de diagnóstico.' });
     }
 });
@@ -53,7 +70,7 @@ app.get('/api/templates', (req, res) => {
 
 // Endpoint para cadastrar novo template
 app.post('/api/templates', (req, res) => {
-    const { linguagem, titulo, descricao, codigo_fonte, tags } = req.body;
+    const { linguagem, titulo, descricao, codigo_fonte, tags } = req.body || {};
     if (!linguagem || !titulo || !codigo_fonte) {
         return res.status(400).json({ erro: 'Linguagem, título e código fonte são obrigatórios.' });
     }

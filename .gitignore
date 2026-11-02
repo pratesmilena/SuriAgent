@@ -10,6 +10,7 @@
 *.userosscache
 *.sln.docstates
 *.env
+!.env.example
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -314,6 +315,10 @@ FakesAssemblies/
 # Node.js Tools for Visual Studio
 .ntvs_analysis.dat
 node_modules/
+banco.db
+banco.db-journal
+banco.db-wal
+banco.db-shm
 
 # Visual Studio 6 build log
 *.plg

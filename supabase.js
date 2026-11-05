@@ -71,4 +71,4 @@ async function consultarLocalizacao(env = process.env, source) {
     return { endereco: data[0][resposta].trim(), fonte: 'Cadastro escolar no Supabase · conhecimentos', origem: 'supabase-conhecimentos' };
 }
 
-module.exports = { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios };
+module.exports = { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios, getSupabase };

@@ -4,7 +4,7 @@ Assistente estudantil da Escola Estadual República do Suriname. Interface respo
 
 ## Estado da validação
 
-Os 49 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
+Os 57 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
 
 A aba Horários carrega automaticamente as turmas de `GET /api/horarios/catalogo`. Os dias sem registros visíveis para a turma ficam indisponíveis. `dia=SEMANA` consulta segunda a sexta e ordena por dia e número da aula; o chat aceita “Quais são as aulas do 3C de segunda a sexta?” e “Quais são as turmas?”. Apelidos são aceitos apenas quando identificam uma única turma cadastrada; o curso nunca é adivinhado em casos ambíguos. O catálogo usa paginação e informa falha em vez de truncar silenciosamente uma lista acima de seu limite de 10 mil linhas.
 
@@ -101,3 +101,11 @@ O comando verifica o acesso real ao Supabase, sem imprimir registros ou chaves. 
 O cabeçalho usa o logotipo fornecido, índice de seções e menu lateral retrátil. No celular, abra pelo botão de menu ou deslize a partir da borda esquerda; Escape e o botão de fechar também funcionam. As seções incluem horários, assistente, escola e ajuda. O destaque usa o preset Plasma roxo de Spell UI, com fundo estático para movimento reduzido ou ausência de WebGL.
 
 O botão Entrar oferece Google via Supabase Auth com PKCE e a opção Continuar como visitante. O acesso escolar e a IA disponível não são bloqueados por login. O serviço Supabase consultado informa Google desabilitado; é necessário habilitar o provedor e configurar suas URLs antes de testar o OAuth real. Não há histórico de conversas ou privilégios adicionais por entrar. Veja [a configuração do Google, as referências visuais e a validação](docs/LOGIN_GOOGLE_E_INTERFACE.md).
+
+## Base escolar por assunto
+
+O agente agora consulta história, cursos, projetos, ambiente, eventos, espaços e perguntas frequentes, além dos horários existentes. Prepare as duas tabelas novas com [o SQL aditivo](docs/sql/001_conteudos_escolares.sql) no SQL Editor do Supabase e cadastre somente informações confirmadas. Essa migração não foi aplicada ao banco remoto pelo assistente.
+
+`escola_conteudos` reúne seis categorias com título, texto, fonte, data de verificação e publicação. `escola_eventos` acrescenta datas, local e público-alvo. Rascunhos não ficam visíveis ao site; usuários anon/authenticated podem apenas ler registros publicados. História e ofertas de cursos não foram inferidas a partir de dados parciais. As tabelas existentes são preservadas e as perguntas escolares não são enviadas a um modelo para completar fatos ausentes.
+
+Veja [a auditoria dos oito tópicos e o guia de preenchimento](docs/BASE_ESCOLAR_CONTEUDOS.md). Há modelos CSV em docs/dados. Depois do cadastro, use `npm run check:contents` para verificar os sete tópicos novos e `npm run check:school` para horários/localização. Os testes incluem execução repetida do SQL em PostgreSQL local via PGlite, isolamento dos rascunhos e recusa de escrita pelos papéis do site.

@@ -1,6 +1,7 @@
 const { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios } = require('./supabase');
 const cadastro = require('./config/escola.json');
 const { erroConsulta } = require('./erros-consulta');
+const { identificarTopicos, consultarConteudos, formatarConteudos } = require('./conteudos-escola');
 
 function normalizar(texto) {
     return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -31,14 +32,16 @@ function informacoesEscola(env = process.env) {
     }
     return { nome: cadastro.nome, endereco, fonte, origem: cadastro.origem, localizacaoConfirmada: !!endereco };
 }
-function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consultarLocalizacao, listar = listarCatalogoHorarios, env = process.env } = {}) {
+function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consultarLocalizacao, listar = listarCatalogoHorarios, conteudos = consultarConteudos, env = process.env } = {}) {
     return async (req, res) => {
         const { pergunta } = req.body || {};
         if (typeof pergunta !== 'string' || !pergunta.trim() || pergunta.length > 10000) {
             return res.status(400).json({ erro: 'Informe uma pergunta de até 10.000 caracteres.' });
         }
         const intencao = interpretar(pergunta);
-        if (!intencao.horario && !intencao.localizacao && !intencao.listaTurmas) return res.json({ handled: false });
+        const topicos = identificarTopicos(pergunta);
+        if (!topicos.length && !intencao.horario && !intencao.localizacao && !intencao.listaTurmas && /\bescola\b|suriname/.test(normalizar(pergunta))) topicos.push('faq');
+        if (!intencao.horario && !intencao.localizacao && !intencao.listaTurmas && !topicos.length) return res.json({ handled: false });
         const partes = [];
         const escola = informacoesEscola(env);
         let origemLocalizacao;
@@ -54,6 +57,13 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
             partes.push(`${local.nome}: ${local.endereco}\nFonte: ${local.fonte}`);
             if (local.origem !== 'supabase-conhecimentos') partes.push('Este endereço foi confirmado na configuração do projeto. A leitura da tabela conhecimentos ainda não foi validada nesta consulta.');
         }
+        for (const topico of topicos) {
+            try { partes.push(formatarConteudos(await conteudos(topico, pergunta))); }
+            catch (error) {
+                const falha = erroConsulta(error);
+                return res.status(falha.status).json({ handled: true, erro: falha.mensagem, codigo: falha.codigo });
+            }
+        }
         let aulas;
         let turma;
         let dia;
@@ -66,7 +76,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
                 return res.status(falha.status).json({ handled: true, erro: falha.mensagem, codigo: falha.codigo });
             }
         }
-        if (intencao.horario && !intencao.listaTurmas) {
+        if (intencao.horario && !intencao.listaTurmas && (!topicos.length || intencao.turmas.length)) {
             if (intencao.turmas.length !== 1 || intencao.dias.length !== 1) {
                 partes.push('Informe uma turma e um único dia da semana. Exemplo: “Quais são as aulas do 3ºC (DS) na sexta-feira?”. Use o nome completo da turma como cadastrado na escola.');
             } else {

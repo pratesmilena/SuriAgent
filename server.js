@@ -7,6 +7,7 @@ const { criarConsultaHorarios, criarCatalogoHorarios } = require('./horarios');
 const { criarPerguntaEscola, informacoesEscola } = require('./escola');
 const { rateLimit } = require('express-rate-limit');
 const { authConfig } = require('./auth-config');
+const { criarListaConteudos } = require('./conteudos-escola');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/horarios/catalogo', criarCatalogoHorarios());
 app.get('/api/horarios', criarConsultaHorarios());
 app.get('/api/escola', (req, res) => res.json(informacoesEscola()));
+app.get('/api/escola/conteudos/:topico', criarListaConteudos());
 app.post('/api/escola/perguntar', criarPerguntaEscola());
 app.get('/api/auth/config', async (req, res) => {
     res.set('Cache-Control', 'no-store');

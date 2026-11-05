@@ -694,7 +694,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[t
 body { background-image: radial-gradient(ellipse at 90% 0%, #7751be18, transparent 45%), radial-gradient(ellipse at 5% 70%, #18ca8f08, transparent 40%); }
 .topbar { padding: 20px 0; }
 .brand { gap: 14px; }
-.brand-image { width: 200px; height: 66px; object-fit: contain; background: #fff; border-radius: 12px; }
+.brand-image { width: 200px; height: 66px; object-fit: contain; background: transparent; border-radius: 0; }
 .brand-caption { font-size: 9px; max-width: 115px; letter-spacing: 1.6px; color: var(--muted); line-height: 1.7; }
 .menu-toggle { border: 1px solid var(--border); background: #1b221f; color: #d7e4dc; border-radius: 10px; width: 42px; height: 42px; font-size: 20px; }
 .menu-toggle:hover { border-color: var(--green); }
@@ -786,7 +786,7 @@ body { background-image: radial-gradient(ellipse at 90% 0%, #7751be18, transpare
 }
 @media(max-width: 575px) {
     .topbar { gap: 10px !important; }
-    .brand-image { width: 145px; height: 48px; border-radius: 9px; }
+    .brand-image { width: 145px; height: 48px; }
     .topbar>.d-flex { gap: 9px !important; }
     .menu-toggle { width: 36px; height: 36px; font-size: 18px; }
     .header-actions { gap: 8px; }

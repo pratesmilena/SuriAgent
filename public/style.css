@@ -748,3 +748,109 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[t
 .school-examples .btn:hover {
     background: #263b25;
 }
+
+/* Navegação, conta e seções do espaço do estudante. */
+:root { --green: #19d394; --purple: #b197ff; }
+body { background-image: radial-gradient(ellipse at 90% 0%, #7751be18, transparent 45%), radial-gradient(ellipse at 5% 70%, #18ca8f08, transparent 40%); }
+.topbar { padding: 20px 0; }
+.brand { gap: 14px; }
+.brand-image { width: 200px; height: 66px; object-fit: contain; background: #fff; border-radius: 12px; }
+.brand-caption { font-size: 9px; max-width: 115px; letter-spacing: 1.6px; color: var(--muted); line-height: 1.7; }
+.menu-toggle { border: 1px solid var(--border); background: #1b221f; color: #d7e4dc; border-radius: 10px; width: 42px; height: 42px; font-size: 20px; }
+.menu-toggle:hover { border-color: var(--green); }
+.header-actions { display: flex; align-items: center; gap: 16px; }
+.visitor-chip { color: #b7c5bc; font-size: 11px; display: inline-flex; align-items: center; gap: 7px; }
+.visitor-chip::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+.btn-account { border: 1px solid #496152; color: #dcebe1; background: #22332a; font-size: 12px; border-radius: 9px; min-height: 40px; padding: 10px 18px; }
+.btn-account:hover { color: #fff; border-color: var(--green); background: #2c4436; }
+.page-index { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-bottom: 22px; padding: 0 0 18px; border-bottom: 1px solid var(--border); }
+.page-index>span { color: var(--muted); font-size: 8px; letter-spacing: 1.7px; margin-right: auto; }
+.page-index a { color: #d2dbd4; font-size: 11px; text-decoration: none; }
+.page-index a:hover { color: var(--green); }
+.app-sidebar .offcanvas-body { display: block; padding: 0; }
+.sidebar-account { margin-top: 28px; display: grid; grid-template-columns: 32px 1fr; gap: 12px 8px; border-top: 1px solid var(--border); padding-top: 22px; }
+.sidebar-account strong { font-size: 12px; font-weight: 500; }
+.sidebar-account p { font-size: 10px; color: var(--muted); margin: 5px 0 0; }
+.sidebar-account .btn { grid-column: 1 / -1; }
+.mini-orb { font-size: 27px; color: var(--purple); }
+.sidebar-note { margin-top: 28px; }
+.nav-pills .nav-link.active { color: #80f0bc; background: #1b3b2b; border-color: #2e6045; }
+.hero-card { background: #baa1f4; }
+.btn-suri { background: #9ee871; border-color: #9ee871; }
+.school-info-card { padding: 28px; gap: 14px; }
+.school-info-card h2 { font-size: 21px; }
+.school-info-card p { color: #c0cec5; font-size: 14px; line-height: 1.8; }
+.school-info-card small { color: var(--muted); font-size: 11px; }
+.section-icon { font-size: 34px; color: var(--green); }
+.guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.guide-card { position: relative; display: block; border: 1px solid #40513f; border-radius: 18px; background: linear-gradient(135deg, #213c2c, #19251e); padding: 28px; color: #ecf5ed; text-decoration: none; }
+.guide-card:nth-child(2) { border-color: #59486f; background: linear-gradient(135deg, #382b4c, #231e2b); }
+.guide-card>span { font-size: 9px; letter-spacing: 1.8px; color: #b8c9be; }
+.guide-card h2 { font-size: 24px; margin: 28px 0 14px; letter-spacing: -.6px; }
+.guide-card p { color: #c2cdc5; font-size: 13px; max-width: 85%; line-height: 1.7; }
+.guide-card b { position: absolute; bottom: 24px; right: 24px; color: var(--green); font-size: 23px; }
+.guide-card:hover { border-color: var(--green); color: #fff; }
+.suri-accordion { --bs-accordion-bg: #1b221f; --bs-accordion-color: #c7d3ca; --bs-accordion-border-color: #38443b; --bs-accordion-btn-color: #e8eee9; --bs-accordion-active-bg: #233b2b; --bs-accordion-active-color: #acedd0; --bs-accordion-btn-focus-box-shadow: 0 0 0 3px #b197ff40; border-radius: 12px; overflow: hidden; }
+.accordion-button { font-size: 14px; }
+.accordion-body { font-size: 13px; line-height: 1.8; }
+.account-dialog { border: 1px solid #4f4466; background: radial-gradient(ellipse at 50% 0, #614b7630, transparent 65%), #19201c; border-radius: 22px; }
+.account-dialog .modal-header { border: 0; padding: 24px; }
+.account-dialog .modal-body { padding: 0 36px 30px; text-align: center; }
+.account-art { font-size: 74px; line-height: 1.3; color: var(--green); }
+.account-dialog h2 { font-size: 32px; letter-spacing: -1px; line-height: 1.2; margin: 16px 0; }
+.account-description { color: #b6c3ba; font-size: 13px; line-height: 1.7; margin-bottom: 26px; }
+.google-button { background: #f6f8f3; color: #202821; border: 1px solid #f6f8f3; min-height: 48px; border-radius: 10px; font-size: 13px; }
+.google-button:hover { background: #d9f4e7; color: #202821; }
+.google-button:disabled { background: #7d8981; color: #142019; border-color: #7d8981; }
+.google-mark { color: #2469cb; font-weight: 700; font-size: 19px; margin-right: 12px; }
+.account-divider { display: flex; gap: 12px; align-items: center; margin: 22px 0; color: var(--muted); font-size: 11px; }
+.account-divider::before,.account-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.btn-visitor { border: 1px solid #4b6553; color: #a7ebc6; background: #22372a; border-radius: 10px; min-height: 46px; font-size: 13px; }
+.btn-visitor:hover { background: #304b39; color: #fff; }
+.account-privacy { font-size: 10px; color: #a2b2a6; line-height: 1.8; margin: 20px 0 0; }
+#account-name { overflow-wrap: anywhere; }
+@media(min-width: 992px) {
+    .sidebar-collapsed .app-sidebar { display: none; }
+    .sidebar-collapsed .main-layout>.workspace-content { width: 100%; }
+    .app-sidebar { position: sticky; top: 0; align-self: flex-start; }
+    .app-sidebar .sidebar { min-height: 75vh; }
+    .app-sidebar .nav { flex-direction: column; }
+}
+@media(max-width: 991px) {
+    .app-sidebar.offcanvas-lg { width: 300px; background: #141c17; color: #ecf3ed; border-right: 1px solid #3d4b41; }
+    .app-sidebar .offcanvas-body { padding: 16px 22px; overflow-y: auto; }
+    .app-sidebar .sidebar { padding: 0; }
+    .app-sidebar .sidebar>.eyebrow,.app-sidebar .sidebar-note,.app-sidebar .sidebar-footer { display: block; }
+    .app-sidebar .nav { flex-direction: column; }
+    .app-sidebar .sidebar-note { margin-top: 28px; }
+    .brand-caption { display: none; }
+    .page-index { margin-top: 10px; }
+    .page-index>span { width: 100%; }
+    .section-heading h1 { font-size: 30px; }
+}
+@media(max-width: 575px) {
+    .topbar { gap: 10px !important; }
+    .brand-image { width: 145px; height: 48px; border-radius: 9px; }
+    .topbar>.d-flex { gap: 9px !important; }
+    .menu-toggle { width: 36px; height: 36px; font-size: 18px; }
+    .header-actions { gap: 8px; }
+    .visitor-chip { display: none; }
+    .btn-account { padding: 8px 11px; font-size: 11px; min-height: 36px; }
+    .page-index { gap: 10px 14px; }
+    .page-index a { font-size: 10px; }
+    .guide-grid { grid-template-columns: 1fr; }
+    .school-info-card { padding: 24px; }
+    .account-dialog .modal-body { padding: 0 24px 24px; }
+    .account-dialog h2 { font-size: 28px; }
+}
+
+.hero-card { isolation: isolate; background: linear-gradient(120deg, #292039, #623daa 65%, #15a877); color: #fff; }
+#gradient-root { position: absolute; inset: 0; z-index: -2; pointer-events: none; }
+.hero-card::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, #181127c9, #21172d66 65%, #131f1840); }
+.hero-card .hero-copy { position: relative; z-index: 1; }
+.hero-card .eyebrow { color: #a9f1ce; }
+.hero-card p:not(.eyebrow) { color: #e0d9ed; }
+.hero-card .hero-index { color: #e0d9ed; }
+.hero-card .orbit { border-color: #e7ddf64d; }
+.hero-card .art-label { color: #e2f3e9; }
+.hero-card .art-star { color: #6ff0bb; }

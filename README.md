@@ -4,7 +4,7 @@ Assistente estudantil da Escola Estadual República do Suriname. Interface respo
 
 ## Estado da validação
 
-Os 42 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
+Os 49 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
 
 A aba Horários carrega automaticamente as turmas de `GET /api/horarios/catalogo`. Os dias sem registros visíveis para a turma ficam indisponíveis. `dia=SEMANA` consulta segunda a sexta e ordena por dia e número da aula; o chat aceita “Quais são as aulas do 3C de segunda a sexta?” e “Quais são as turmas?”. Apelidos são aceitos apenas quando identificam uma única turma cadastrada; o curso nunca é adivinhado em casos ambíguos. O catálogo usa paginação e informa falha em vez de truncar silenciosamente uma lista acima de seu limite de 10 mil linhas.
 
@@ -48,7 +48,7 @@ npm test
 
 Os testes verificam validação HTTP, normalização dos filtros, lista vazia, indisponibilidade, erros sem vazamento de detalhes e contrato da consulta Supabase (tabela, colunas, filtros e ordenação). Usam um serviço simulado, sem modificar dados remotos. Teste a integração real com uma turma conhecida após configurar as credenciais e verificar as permissões RLS. Sem essas credenciais, testes locais não comprovam o acesso ao banco escolar.
 
-Não há build: o Express serve os arquivos de `public/` e os assets das dependências instaladas. Em produção, configure HTTPS e, se houver proxy reverso, configure a confiança em proxies conforme a infraestrutura antes de alterar a identificação por IP do limitador.
+O Express serve os arquivos de `public/` e os assets locais. O gradiente Spell UI é compilado por `npm run build:ui`, automaticamente antes de `npm start`. O restante da interface continua em Bootstrap e JavaScript. Em produção, configure HTTPS e, se houver proxy reverso, configure a confiança em proxies conforme a infraestrutura antes de alterar a identificação por IP do limitador.
 
 ## Seleção e comparação de IA
 
@@ -95,3 +95,9 @@ NODE_USE_ENV_PROXY=1 npm run check:school -- '3ºC (DS)' SEXTA
 ```
 
 O comando verifica o acesso real ao Supabase, sem imprimir registros ou chaves. Salva `.local/school-connection.json`; código 2 indica configuração/mapeamento ausente ou resultado vazio que ainda precisa de verificação. Resultado vazio não comprova ausência de aulas, pois pode haver RLS. Veja [o roteiro de conferência](docs/VERIFICACAO_ESCOLA.md).
+
+## Navegação e login opcional
+
+O cabeçalho usa o logotipo fornecido, índice de seções e menu lateral retrátil. No celular, abra pelo botão de menu ou deslize a partir da borda esquerda; Escape e o botão de fechar também funcionam. As seções incluem horários, assistente, escola e ajuda. O destaque usa o preset Plasma roxo de Spell UI, com fundo estático para movimento reduzido ou ausência de WebGL.
+
+O botão Entrar oferece Google via Supabase Auth com PKCE e a opção Continuar como visitante. O acesso escolar e a IA disponível não são bloqueados por login. O serviço Supabase consultado informa Google desabilitado; é necessário habilitar o provedor e configurar suas URLs antes de testar o OAuth real. Não há histórico de conversas ou privilégios adicionais por entrar. Veja [a configuração do Google, as referências visuais e a validação](docs/LOGIN_GOOGLE_E_INTERFACE.md).

@@ -6,6 +6,7 @@ const { publicConfig, criarDiagnostico } = require('./ai');
 const { criarConsultaHorarios, criarCatalogoHorarios } = require('./horarios');
 const { criarPerguntaEscola, informacoesEscola } = require('./escola');
 const { rateLimit } = require('express-rate-limit');
+const { authConfig } = require('./auth-config');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +17,7 @@ app.use('/api', rateLimit({
     message: { erro: 'Muitas solicitações. Aguarde um minuto e tente novamente.' }
 }));
 const assets = {
+    '/vendor/supabase.js': '@supabase/supabase-js/dist/umd/supabase.js',
     '/vendor/bootstrap.min.css': 'bootstrap/dist/css/bootstrap.min.css',
     '/vendor/bootstrap.bundle.min.js': 'bootstrap/dist/js/bootstrap.bundle.min.js',
     '/vendor/marked.umd.js': 'marked/lib/marked.umd.js',
@@ -30,6 +32,10 @@ app.get('/api/horarios/catalogo', criarCatalogoHorarios());
 app.get('/api/horarios', criarConsultaHorarios());
 app.get('/api/escola', (req, res) => res.json(informacoesEscola()));
 app.post('/api/escola/perguntar', criarPerguntaEscola());
+app.get('/api/auth/config', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.json(await authConfig());
+});
 app.get('/api/ia', (req, res) => res.json(publicConfig()));
 app.post('/api/diagnosticar', criarDiagnostico());
 

@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
         history.replaceState(null, '', '#' + tab.getAttribute('aria-controls'));
         if (mobile()) bootstrap.Offcanvas.getInstance(sidebar)?.hide();
     }));
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+        // Fechar também ao escolher a seção que já está aberta.
+        if (mobile()) bootstrap.Offcanvas.getInstance(sidebar)?.hide();
+    }));
     document.querySelectorAll('[data-route]').forEach(link => link.addEventListener('click', event => {
         event.preventDefault(); go(link.dataset.route);
     }));

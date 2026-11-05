@@ -2,7 +2,9 @@
 
 ## Interface
 
-A interface usa o logotipo fornecido pela responsável, índice de links e menu lateral com Horários de aula, Assistente Suri, Nossa escola e Como usar. O menu pode ser recolhido no desktop; no celular abre por botão ou gesto a partir da borda esquerda, fecha ao escolher uma seção, com Escape ou gesto para a esquerda. O índice atualiza o fragmento da URL e permite abrir seções diretamente.
+A interface usa o logotipo fornecido pela responsável, índice de links e menu lateral com Horários de aula, Assistente Suri, Nossa escola e Como usar. O menu pode ser recolhido no desktop; no celular e tablet abre em tela inteira por botão ou gesto a partir da borda esquerda, fecha ao escolher uma seção, com Escape ou gesto para a esquerda. O índice atualiza o fragmento da URL e permite abrir seções diretamente.
+
+O destaque mantém o gradiente e o título, sem a estrela decorativa, a legenda junto dela ou o índice “01 / ESCOLA EM MOVIMENTO”. A estrutura de horários no desktop foi preservada.
 
 O gradiente é o componente Animated Gradient do registro oficial Spell UI, preset **Plasma** roxo. A fonte está em `ui/spell-ui/animated-gradient.tsx`; o registro oficial foi localizado pelo namespace @spell em `https://ui.shadcn.com/r/registries.json`, que aponta para `https://spell.sh/r/animated-gradient.json`. O componente foi adaptado apenas para o tema escuro fixo, removendo a dependência de next-themes. O pequeno ponto React não migra o restante do aplicativo: Express e Bootstrap continuam sendo usados.
 

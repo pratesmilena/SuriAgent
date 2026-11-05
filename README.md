@@ -4,9 +4,11 @@ Assistente estudantil da Escola Estadual República do Suriname. Interface respo
 
 ## Estado da validação
 
-Os 36 testes locais passaram. A leitura real dos horários no Supabase foi confirmada para `3ºC (DS)` em `SEXTA` (sete aulas), na tabela da interface e no chat, após concessão de leitura no banco pela responsável. A leitura da localização em `conhecimentos` ainda está pendente; nesse caso o aplicativo informa explicitamente quando usa o endereço confirmado na configuração local. Os testes de provedores de IA usam simulações, sem comprovar inferência autenticada.
+Os 42 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
 
-A chave e o banco SQLite local não são versionados. Configurar as variáveis do ambiente continua necessário em outro computador. As permissões e os registros existentes no Supabase são externos ao repositório; os scripts SQL de revisão não são executados automaticamente.
+A aba Horários carrega automaticamente as turmas de `GET /api/horarios/catalogo`. Os dias sem registros visíveis para a turma ficam indisponíveis. `dia=SEMANA` consulta segunda a sexta e ordena por dia e número da aula; o chat aceita “Quais são as aulas do 3C de segunda a sexta?” e “Quais são as turmas?”. Apelidos são aceitos apenas quando identificam uma única turma cadastrada; o curso nunca é adivinhado em casos ambíguos. O catálogo usa paginação e informa falha em vez de truncar silenciosamente uma lista acima de seu limite de 10 mil linhas.
+
+A chave e o banco SQLite local não são versionados. Configurar as variáveis do ambiente continua necessário em outro computador. As permissões e os registros existentes no Supabase são externos ao repositório; os scripts SQL de revisão não são executados automaticamente. A localização identifica se foi consultada no banco ou lida da configuração confirmada. Os testes de provedores de IA usam simulações, sem comprovar inferência autenticada.
 
 ## Desenvolvimento
 
@@ -26,7 +28,7 @@ Quando houver proxy HTTP/HTTPS, execute com Node.js 24 e `NODE_USE_ENV_PROXY=1`,
 
 `GET /api/horarios?turma=3%C2%BAC%20(DS)&dia=SEXTA`
 
-A turma deve corresponder exatamente ao cadastro. Dias aceitos: SEGUNDA, TERÇA, QUARTA, QUINTA e SEXTA. A API consulta somente `public.horario_aulatarde`, seleciona `turma, dia_semana, numero_aula, horario_inicio, professor, disciplina` e ordena por `numero_aula`. Não cria ou altera tabelas, registros ou políticas RLS. A interface diferencia carregamento, falha, resultado vazio e aulas encontradas.
+A lista da interface usa os nomes reais do cadastro; a API também aceita variantes que identifiquem uma única turma. Dias aceitos: SEGUNDA, TERÇA, QUARTA, QUINTA, SEXTA e SEMANA. A API consulta somente `public.horario_aulatarde`, seleciona `turma, dia_semana, numero_aula, horario_inicio, professor, disciplina` e ordena por `numero_aula`. Não cria ou altera tabelas, registros ou políticas RLS. A interface diferencia carregamento, falha, resultado vazio e aulas encontradas.
 
 Respostas: 200 com `{ turma, dia, aulas }`; 400 para filtros inválidos; 503 para configuração ausente; 502 para falha na consulta; 429 ao exceder 60 requisições/minuto por IP. Consultas têm limite de 10 segundos.
 
@@ -72,7 +74,7 @@ O segundo comando salva `.local/ai-comparison.json` e encerra com código 2 se n
 
 ## Perguntas sobre a escola
 
-O chat reconhece perguntas como “Onde fica a escola?”, “Quais são as aulas do 3ºC (DS) na sexta-feira?” e “Qual é a segunda aula do 3ºC (DS) na terça?”. Interpreta turma, dia e número da aula com regras controladas, sem depender de chave de IA. Se faltar turma/dia ou houver ambiguidade, pede esclarecimento. O nome da turma deve corresponder ao cadastro. As respostas são exibidas como texto, com a origem dos dados.
+O chat reconhece perguntas como “Onde fica a escola?”, “Quais são as aulas do 3ºC (DS) na sexta-feira?” e “Qual é a segunda aula do 3ºC (DS) na terça?”. Interpreta turma, dia e número da aula com regras controladas, sem depender de chave de IA. Se faltar turma/dia ou houver ambiguidade, pede esclarecimento. Turmas são resolvidas pelo cadastro; variantes ambíguas não são escolhidas automaticamente. As respostas são exibidas como texto, com a origem dos dados.
 
 `POST /api/escola/perguntar` recebe `{ pergunta }` e retorna `{ handled, solucao, formato }`; quando a intenção não é escolar retorna `{ handled: false }`. Falhas no acesso a horários retornam 503 (configuração ausente) ou 502 (falha remota), sem consultar uma IA para completar dados que faltam.
 

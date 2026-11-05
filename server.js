@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const db = require('./database');
 const { publicConfig, criarDiagnostico } = require('./ai');
-const { criarConsultaHorarios } = require('./horarios');
+const { criarConsultaHorarios, criarCatalogoHorarios } = require('./horarios');
 const { criarPerguntaEscola, informacoesEscola } = require('./escola');
 const { rateLimit } = require('express-rate-limit');
 
@@ -26,6 +26,7 @@ for (const [route, file] of Object.entries(assets)) {
 }
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/api/horarios/catalogo', criarCatalogoHorarios());
 app.get('/api/horarios', criarConsultaHorarios());
 app.get('/api/escola', (req, res) => res.json(informacoesEscola()));
 app.post('/api/escola/perguntar', criarPerguntaEscola());

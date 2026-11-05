@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { DIAS, escolherTurma, montarCatalogo } = require('./catalogo-horarios');
 
 let client;
 function getSupabase() {
@@ -13,16 +14,38 @@ function getSupabase() {
     return client;
 }
 
+async function listarCatalogoHorarios(source = getSupabase()) {
+    const rows = [];
+    for (let inicio = 0; inicio < 10000; inicio += 1000) {
+        const { data, error } = await source.from('horario_aulatarde')
+            .select('turma,dia_semana,numero_aula')
+            .order('turma').order('dia_semana').order('numero_aula')
+            .range(inicio, inicio + 999).abortSignal(AbortSignal.timeout(10000));
+        if (error) throw error;
+        rows.push(...data);
+        if (data.length < 1000) return montarCatalogo(rows);
+    }
+    throw new Error('O catálogo excedeu o limite de consulta; não é possível mostrar uma lista completa.');
+}
+
 async function consultarHorarios(turma, dia, source = getSupabase()) {
-    const { data, error } = await source
-        .from('horario_aulatarde')
-        .select('turma, dia_semana, numero_aula, horario_inicio, professor, disciplina')
-        .eq('turma', turma)
-        .eq('dia_semana', dia)
-        .order('numero_aula', { ascending: true })
-        .abortSignal(AbortSignal.timeout(10000));
-    if (error) throw error;
-    return data;
+    async function buscar(nome) {
+        let query = source.from('horario_aulatarde')
+            .select('turma, dia_semana, numero_aula, horario_inicio, professor, disciplina')
+            .eq('turma', nome);
+        query = dia === 'SEMANA' ? query.in('dia_semana', DIAS) : query.eq('dia_semana', dia);
+        const { data, error } = await query.order('numero_aula', { ascending: true })
+            .abortSignal(AbortSignal.timeout(10000));
+        if (error) throw error;
+        return dia === 'SEMANA' ? data.sort((a, b) => DIAS.indexOf(a.dia_semana) - DIAS.indexOf(b.dia_semana) || Number(a.numero_aula) - Number(b.numero_aula)) : data;
+    }
+    let aulas = await buscar(turma);
+    if (!aulas.length) {
+        const catalogo = await listarCatalogoHorarios(source);
+        const nome = escolherTurma(turma, catalogo.turmas.map(item => item.nome));
+        if (nome && nome !== turma) aulas = await buscar(nome);
+    }
+    return aulas;
 }
 
 async function consultarLocalizacao(env = process.env, source) {
@@ -48,4 +71,4 @@ async function consultarLocalizacao(env = process.env, source) {
     return { endereco: data[0][resposta].trim(), fonte: 'Cadastro escolar no Supabase · conhecimentos', origem: 'supabase-conhecimentos' };
 }
 
-module.exports = { consultarHorarios, consultarLocalizacao };
+module.exports = { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios };

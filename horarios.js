@@ -1,6 +1,6 @@
-const { consultarHorarios } = require('./supabase');
+const { consultarHorarios, listarCatalogoHorarios } = require('./supabase');
 const { erroConsulta } = require('./erros-consulta');
-const DIAS = new Set(['SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA']);
+const DIAS = new Set(['SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SEMANA']);
 
 function criarConsultaHorarios(consultar = consultarHorarios) {
     return async (req, res) => {
@@ -11,7 +11,7 @@ function criarConsultaHorarios(consultar = consultarHorarios) {
         }
         try {
             const aulas = await consultar(turma, dia);
-            return res.json({ turma, dia, aulas });
+            return res.json({ turma: aulas[0]?.turma || turma, dia, aulas });
         } catch (error) {
             console.error('Falha na consulta de horários', { codigo: error.code || 'indisponivel' });
             const falha = erroConsulta(error);
@@ -20,4 +20,13 @@ function criarConsultaHorarios(consultar = consultarHorarios) {
     };
 }
 
-module.exports = { criarConsultaHorarios };
+function criarCatalogoHorarios(listar = listarCatalogoHorarios) {
+    return async (req, res) => {
+        try { return res.json(await listar()); }
+        catch (error) {
+            const falha = erroConsulta(error);
+            return res.status(falha.status).json({ erro: falha.mensagem, codigo: falha.codigo });
+        }
+    };
+}
+module.exports = { criarConsultaHorarios, criarCatalogoHorarios };

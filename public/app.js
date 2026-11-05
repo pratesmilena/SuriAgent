@@ -3,9 +3,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const horariosStatus = document.getElementById('horarios-status');
     const horariosResults = document.getElementById('horarios-results');
     const horariosSubmit = document.getElementById('horarios-submit');
+    const turmaSelect = document.getElementById('turma');
+    const diaSelect = document.getElementById('dia');
+    const catalogoRetry = document.getElementById('catalogo-retry');
+    let turmas = [];
+    function atualizarDias() {
+        const turma = turmas.find(item => item.nome === turmaSelect.value);
+        for (const option of diaSelect.options) {
+            option.disabled = option.value !== 'SEMANA' && !turma?.dias.includes(option.value);
+        }
+        if (diaSelect.selectedOptions[0]?.disabled) diaSelect.value = turma?.dias[0] || 'SEMANA';
+    }
+    async function carregarTurmas() {
+        catalogoRetry.hidden = true;
+        turmaSelect.disabled = true;
+        horariosSubmit.disabled = true;
+        horariosStatus.className = 'result-status';
+        horariosStatus.textContent = 'Carregando turmas da escola…';
+        try {
+            const response = await fetch('/api/horarios/catalogo', { signal: AbortSignal.timeout(15000) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.erro || 'Não foi possível carregar as turmas.');
+            turmas = data.turmas;
+            turmaSelect.replaceChildren(...turmas.map(turma => {
+                const option = document.createElement('option');
+                option.value = turma.nome;
+                option.textContent = turma.nome;
+                return option;
+            }));
+            if (!turmas.length) throw new Error('Nenhuma turma está visível na base da escola. Confirme o cadastro e o acesso.');
+            atualizarDias();
+            turmaSelect.disabled = false;
+            horariosSubmit.disabled = false;
+            horariosStatus.textContent = `${turmas.length} turmas disponíveis. Escolha a turma e o dia ou consulte a semana completa.`;
+        } catch (error) {
+            horariosStatus.classList.add('error');
+            horariosStatus.textContent = error.name === 'TimeoutError' ? 'O carregamento demorou mais que o esperado. Tente novamente.' : error.message;
+            catalogoRetry.hidden = false;
+        }
+    }
+    turmaSelect.addEventListener('change', atualizarDias);
+    catalogoRetry.addEventListener('click', carregarTurmas);
+    carregarTurmas();
     horariosForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         horariosSubmit.disabled = true;
+        turmaSelect.disabled = true;
+        diaSelect.disabled = true;
         horariosSubmit.textContent = 'Consultando…';
         horariosResults.setAttribute('aria-busy', 'true');
         horariosResults.replaceChildren();
@@ -31,6 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             horariosResults.setAttribute('aria-busy', 'false');
             horariosSubmit.disabled = false;
+            turmaSelect.disabled = false;
+            diaSelect.disabled = false;
             horariosSubmit.textContent = 'Consultar →';
         }
     });
@@ -40,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'card schedule-card';
         const title = document.createElement('h3');
         title.className = 'schedule-title';
-        title.textContent = `${turma} · ${dia}`;
+        title.textContent = `${turma} · ${dia === 'SEMANA' ? 'Segunda a sexta-feira' : dia}`;
         const wrapper = document.createElement('div');
         wrapper.className = 'table-responsive';
         const table = document.createElement('table');
@@ -49,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         caption.className = 'visually-hidden';
         caption.textContent = `Horários de ${turma} em ${dia}`;
         const head = table.createTHead().insertRow();
-        for (const label of ['Aula', 'Início', 'Disciplina', 'Professor(a)']) {
+        for (const label of [...(dia === 'SEMANA' ? ['Dia'] : []), 'Aula', 'Início', 'Disciplina', 'Professor(a)']) {
             const th = document.createElement('th');
             th.scope = 'col';
             th.textContent = label;
@@ -58,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const body = table.createTBody();
         for (const aula of aulas) {
             const row = body.insertRow();
-            for (const value of [aula.numero_aula, aula.horario_inicio, aula.disciplina, aula.professor]) {
+            for (const value of [...(dia === 'SEMANA' ? [aula.dia_semana] : []), aula.numero_aula, aula.horario_inicio, aula.disciplina, aula.professor]) {
                 row.insertCell().textContent = value == null || value === '' ? 'Não informado' : String(value);
             }
         }

@@ -1,6 +1,6 @@
 # Como conferir as consultas escolares
 
-Estado atual: 36 testes locais passaram. Após a concessão de leitura pela responsável no Supabase, o backend retornou sete aulas reais do 3ºC (DS) em SEXTA; a tabela da interface e o chat foram verificados no navegador. A leitura do endereço na tabela conhecimentos permanece pendente; a configuração local tem origem explícita. Os registros abaixo preservam o histórico do diagnóstico.
+Estado atual: 42 testes locais passaram. As 11 turmas existentes foram consultadas nos cinco dias úteis: 55 consultas e 385 aulas. A interface agora oferece a seleção das turmas reais e da semana completa. O chat reconhece nomes abreviados sem ambiguidade, como 3C para 3ºC (DS). A atualização lê os dados existentes e não insere horários. Os registros abaixo preservam o histórico do diagnóstico.
 
 Diagnóstico inicial em 04/11/2026: 34 testes locais passaram, incluindo integração do SDK Supabase com HTTP simulado. Isso não substitui leitura autenticada do projeto remoto. O endpoint remoto respondeu HTTP 401 em requisição sem chave. A variável SUPABASE_PUBLISHABLE_KEY está ausente; não foi confirmada a leitura de registros reais.
 

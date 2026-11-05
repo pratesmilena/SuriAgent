@@ -57,16 +57,22 @@ test('Puter normaliza texto e blocos sem aceitar respostas vazias',()=>{
     assert.equal(puterText(' Oi '),'Oi');assert.throws(()=>puterText({message:{content:[]}}));
 });
 
-test('rota valida mensagem/provedor e preserva o formato da resposta',async t=>{
+test('rota valida a mensagem e mantém a escolha de modelo no servidor',async t=>{
     const app=express();app.use(express.json());let calls=0;
-    app.post('/api/diagnosticar',criarDiagnostico(async({provider,message})=>{calls++;assert.equal(message,'Oi');return {solucao:'Olá',provider,model:'teste'};}));
+    app.post('/api/diagnosticar',criarDiagnostico(async({provider,message})=>{calls++;assert.equal(message,'Oi');assert.equal(provider,undefined);return {solucao:'Olá',provider:'gemini',model:'teste'};}));
     const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
     t.after(()=>new Promise(r=>{server.closeAllConnections();server.close(r);}));
     const url=`http://127.0.0.1:${server.address().port}/api/diagnosticar`;
-    for(const body of [{},{logErro:42},{logErro:' '},{logErro:'x'.repeat(10001)},{logErro:'Oi',provider:'puter'},{logErro:'Oi',provider:'toString'},{logErro:'Oi',provider:[]}]) {
+    for(const body of [{},{logErro:42},{logErro:' '},{logErro:'x'.repeat(10001)}]) {
         assert.equal((await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})).status,400);
     }
     assert.equal(calls,0);
     const response=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({logErro:' Oi ',provider:'groq'})});
-    assert.equal(response.status,200);assert.deepEqual(await response.json(),{solucao:'Olá',provider:'groq',model:'teste'});assert.equal(calls,1);
+    assert.equal(response.status,200);assert.deepEqual(await response.json(),{solucao:'Olá'});assert.equal(calls,1);
+});
+
+test('erro técnico do provedor não é exposto ao usuário do chat',async t=>{
+    const app=express();app.use(express.json());app.post('/api/diagnosticar',criarDiagnostico(async()=>{throw Object.assign(new Error('GEMINI_API_KEY: detalhe interno do modelo'),{status:503});}));
+    const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>{server.closeAllConnections();server.close(r);}));
+    const response=await fetch(`http://127.0.0.1:${server.address().port}/api/diagnosticar`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({logErro:'Oi'})});assert.equal(response.status,503);const body=await response.json();assert.match(body.erro,/consultas escolares/);assert.doesNotMatch(body.erro,/GEMINI|modelo|API_KEY/);
 });

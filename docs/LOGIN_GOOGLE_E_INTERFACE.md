@@ -14,7 +14,7 @@ O Refero foi consultado como referência de organização visual, sem copiar tel
 
 ## Visitante e conta
 
-A entrada é opcional: consultas de horários, perguntas escolares e acesso aos provedores disponíveis continuam funcionando sem login. O login Google identifica a conta e mostra o estado da sessão; não habilita operações administrativas nem implementa histórico ou sincronização de conversas. Chaves de IA continuam no servidor. O Puter mantém sua autenticação própria e suas cotas, independentemente do login Google do SuriAgent.
+A entrada é opcional: consultas de horários, perguntas escolares e acesso aos provedores disponíveis continuam funcionando sem login. O login Google identifica a conta e mostra o estado da sessão; não habilita operações administrativas nem implementa histórico ou sincronização de conversas. Chaves de IA continuam no servidor. Não há seletor de modelo nem conexão Puter no site. O serviço de IA é definido pela administração no servidor; entrar com Google não altera essa escolha.
 
 O navegador usa o SDK Supabase instalado, servido localmente, e OAuth com PKCE. O retorno é a origem atual da aplicação com `#chat-panel`. A sessão é persistida pelo SDK; ao restaurar, getUser confirma a identidade com o serviço. Sair encerra a sessão neste dispositivo. Nome e e-mail são inseridos como texto, sem HTML.
 

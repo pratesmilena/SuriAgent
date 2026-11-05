@@ -1,5 +1,7 @@
 # Avaliação de opções de IA — SuriAgent
 
+Atualização: a seleção de modelo e a conexão Puter foram retiradas da interface pública a pedido da responsável. A comparação abaixo é um registro técnico/histórico. O serviço usado pelo site é definido apenas no servidor por AI_PROVIDER; não há endpoint público de catálogo de modelos.
+
 Verificação em 4 de novembro de 2026. Escopo: as quatro opções solicitadas, com um modelo inicial por serviço. Não é possível declarar o melhor modelo por qualidade sem executar inferências autenticadas com as mesmas tarefas.
 
 ## Decisão provisória

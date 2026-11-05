@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const db = require('./database');
-const { publicConfig, criarDiagnostico } = require('./ai');
+const { criarDiagnostico } = require('./ai');
 const { criarConsultaHorarios, criarCatalogoHorarios } = require('./horarios');
 const { criarPerguntaEscola, informacoesEscola } = require('./escola');
 const { rateLimit } = require('express-rate-limit');
@@ -38,7 +38,6 @@ app.get('/api/auth/config', async (req, res) => {
     res.set('Cache-Control', 'no-store');
     res.json(await authConfig());
 });
-app.get('/api/ia', (req, res) => res.json(publicConfig()));
 app.post('/api/diagnosticar', criarDiagnostico());
 
 // Endpoint para listar templates

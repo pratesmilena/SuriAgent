@@ -1,10 +1,10 @@
 # AgenteSuri
 
-Assistente estudantil da Escola Estadual República do Suriname. Interface responsiva com Bootstrap 5, em verde e roxo, consulta de horários oficiais via Supabase e chat com seleção entre Gemini, Groq, OpenRouter e Puter.
+Assistente estudantil da Escola Estadual República do Suriname. Interface responsiva com Bootstrap 5, em verde e roxo, consulta de horários oficiais via Supabase e chat com o serviço de IA definido pela administração no servidor.
 
 ## Estado da validação
 
-Os 57 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
+Os 58 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
 
 A aba Horários carrega automaticamente as turmas de `GET /api/horarios/catalogo`. Os dias sem registros visíveis para a turma ficam indisponíveis. `dia=SEMANA` consulta segunda a sexta e ordena por dia e número da aula; o chat aceita “Quais são as aulas do 3C de segunda a sexta?” e “Quais são as turmas?”. Apelidos são aceitos apenas quando identificam uma única turma cadastrada; o curso nunca é adivinhado em casos ambíguos. O catálogo usa paginação e informa falha em vez de truncar silenciosamente uma lista acima de seu limite de 10 mil linhas.
 
@@ -20,7 +20,7 @@ cp .env.example .env  # somente se .env ainda não existir
 npm start
 ```
 
-Configure `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` no servidor. Use a chave publishable do projeto; não use `service_role` ou `sb_secret_...`. Em ambiente gerenciado, prefira as configurações seguras do ambiente a arquivos locais. As chaves de IA são opcionais para a consulta de horários. O chat usa a chave do provedor selecionado ou a autenticação pessoal do Puter. Nunca envie valores de chaves ao Git.
+Configure `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` no servidor. Use a chave publishable do projeto; não use `service_role` ou `sb_secret_...`. Em ambiente gerenciado, prefira as configurações seguras do ambiente a arquivos locais. As chaves de IA são opcionais para a consulta de horários. O chat geral usa a chave do serviço definido por AI_PROVIDER no servidor. Não há escolha de modelo na interface pública. Nunca envie valores de chaves ao Git.
 
 Quando houver proxy HTTP/HTTPS, execute com Node.js 24 e `NODE_USE_ENV_PROXY=1`, preservando o proxy e o certificado CA fornecidos pelo ambiente. Acesse a aplicação pela porta definida em `PORT` (padrão 3000). Bootstrap, Marked e DOMPurify são servidos localmente; não dependem de CDN.
 
@@ -36,7 +36,7 @@ O administrador da escola deve verificar se a política RLS atual permite a leit
 
 ## Chat e templates
 
-O chat de programação mantém `POST /api/diagnosticar`, com `{ logErro, provider }`. Gemini, Groq e OpenRouter usam chaves exclusivamente no servidor. `GET /api/ia` informa os modelos e a presença de configuração sem revelar chaves. O Puter é uma opção explícita no navegador e usa a conta pessoal do usuário; não passa pela rota de diagnóstico. Respostas Markdown são sanitizadas com DOMPurify. Antes de usar qualquer IA, o chat consulta `POST /api/escola/perguntar`. Perguntas reconhecidas sobre aulas e localização são respondidas pelo backend escolar, sem enviar dados a modelos externos. Perguntas gerais seguem ao provedor selecionado. Não é uma pesquisa aberta na web nem uma ferramenta de SQL para IA.
+O chat de programação mantém `POST /api/diagnosticar`, com `{ logErro }`. Gemini, Groq e OpenRouter usam chaves exclusivamente no servidor. A configuração AI_PROVIDER e a variável de modelo correspondente são decisões administrativas. O endpoint público /api/ia foi retirado; o corpo da requisição não escolhe o provedor e a resposta pública contém apenas a solução. O carregamento do SDK Puter e seu botão de conexão foram retirados da interface. Respostas Markdown são sanitizadas com DOMPurify. Antes de usar qualquer IA, o chat consulta `POST /api/escola/perguntar`. Perguntas reconhecidas sobre aulas e localização são respondidas pelo backend escolar, sem enviar dados a modelos externos. Perguntas gerais seguem ao serviço configurado no servidor. Não é uma pesquisa aberta na web nem uma ferramenta de SQL para IA.
 
 As rotas existentes de templates (`GET/POST /api/templates`) continuam usando SQLite. `banco.db` é criado automaticamente e ignorado pelo Git; preserve esse arquivo quando contiver dados reais.
 
@@ -50,7 +50,7 @@ Os testes verificam validação HTTP, normalização dos filtros, lista vazia, i
 
 O Express serve os arquivos de `public/` e os assets locais. O gradiente Spell UI é compilado por `npm run build:ui`, automaticamente antes de `npm start`. O restante da interface continua em Bootstrap e JavaScript. Em produção, configure HTTPS e, se houver proxy reverso, configure a confiança em proxies conforme a infraestrutura antes de alterar a identificação por IP do limitador.
 
-## Seleção e comparação de IA
+## Configuração administrativa e comparação de IA
 
 O padrão provisório é `AI_PROVIDER=gemini` com `GEMINI_MODEL=gemini-3.5-flash-lite`. A escolha prioriza uma variante Flash para respostas curtas em português e programação; **não há vencedor medido enquanto faltarem credenciais para a comparação real**. O modelo anterior `gemini-2.5-flash` tem restrições para novos projetos na documentação atual. Todas as escolhas podem ser alteradas sem modificar o código:
 
@@ -61,7 +61,7 @@ O padrão provisório é `AI_PROVIDER=gemini` com `GEMINI_MODEL=gemini-3.5-flash
 | OpenRouter | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | `openrouter/free` (roteador, modelo efetivo pode variar) |
 | Puter | `PUTER_MODEL`; usuário entra na conta pelo navegador | `gpt-5.4-nano` |
 
-Na aba Assistente Suri, selecione o provedor. Para Puter, clique em **Conectar ao Puter**, autentique-se na janela oficial e só então envie sua mensagem. O SDK oficial `https://js.puter.com/v2/` é carregado apenas ao selecionar Puter. O modelo de cobrança é por conta do usuário, sujeito a saldo, cotas e disponibilidade; não é garantia de gratuidade ilimitada. O Express continua necessário para Supabase, templates e os outros provedores. As mensagens vão para o provedor escolhido; não há troca automática para outro serviço em caso de erro.
+A interface pública não exibe seleção de modelo, nomes dos serviços ou mensagens de configuração de chaves. A administração define AI_PROVIDER como gemini, groq ou openrouter e configura a chave correspondente. Os adaptadores e o comando de comparação continuam disponíveis para desenvolvimento. Puter permanece apenas no registro de comparação histórica; não pode ser escolhido no site nem usado como serviço de backend. Falhas da IA mostram mensagens simples, sem detalhes técnicos. As consultas escolares continuam independentes de chaves de IA.
 
 Os endpoints corrigidos são `https://api.groq.com/openai/v1/chat/completions`, `https://openrouter.ai/api/v1/chat/completions` e `https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent`. Chaves nunca ficam na URL nem no navegador. As chamadas do backend têm timeout de 45 segundos, limite de saída e tratamento de autenticação, cota e respostas vazias. As políticas de gratuidade e o catálogo podem mudar; confira sua conta antes do uso. O teste ao vivo faz até três chamadas por provedor configurado e pode consumir sua cota/saldo.
 
@@ -70,7 +70,7 @@ npm test                   # testes locais, com respostas simuladas
 npm run compare:ai          # chamadas reais somente aos provedores com chaves configuradas
 ```
 
-O segundo comando salva `.local/ai-comparison.json` e encerra com código 2 se nenhum provedor concluiu as tarefas; ausência de chave não é sucesso. O Puter requer navegador autenticado e é registrado separadamente. Compare acerto das tarefas objetivas, clareza em português, orientação pedagógica, não invenção de horários, latência e custo. A resposta escolar exige revisão humana. Não é uma comparação de todos os modelos de cada catálogo nem uma avaliação estatística com uma única amostra. Veja [a avaliação e as limitações](docs/AVALIACAO_IA.md).
+O segundo comando salva `.local/ai-comparison.json` e encerra com código 2 se nenhum provedor concluiu as tarefas; ausência de chave não é sucesso. O Puter é registrado como dependente de navegador autenticado, mas o fluxo público de seleção e conexão foi removido. Compare acerto das tarefas objetivas, clareza em português, orientação pedagógica, não invenção de horários, latência e custo. A resposta escolar exige revisão humana. Não é uma comparação de todos os modelos de cada catálogo nem uma avaliação estatística com uma única amostra. Veja [a avaliação e as limitações](docs/AVALIACAO_IA.md).
 
 ## Perguntas sobre a escola
 

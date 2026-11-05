@@ -62,17 +62,23 @@ async function generateAnswer({ provider, message, env = process.env, fetchImpl 
 
 function criarDiagnostico(generate = generateAnswer) {
     return async (req, res) => {
-        const { logErro, provider } = req.body || {};
+        const { logErro } = req.body || {};
         if (typeof logErro !== 'string' || !logErro.trim() || logErro.length > 10000) {
             return res.status(400).json({ erro: 'Informe uma mensagem de até 10.000 caracteres.' });
         }
-        if (provider !== undefined && (typeof provider !== 'string' || !Object.hasOwn(PROVIDERS, provider) || PROVIDERS[provider].browser)) {
-            return res.status(400).json({ erro: 'Selecione um provedor de IA válido para o servidor.' });
-        }
-        try { return res.json(await generate({ provider, message: logErro.trim() })); }
-        catch (error) {
-            const status = [400, 429, 502, 503, 504].includes(error.status) ? error.status : 502;
-            return res.status(status).json({ erro: [400, 429, 502, 503, 504].includes(error.status) ? error.message : 'Não foi possível consultar a IA.' });
+        try {
+            // A escolha pertence à configuração do servidor, não ao corpo da requisição.
+            const resultado = await generate({ message: logErro.trim() });
+            return res.json({ solucao: resultado.solucao });
+        } catch (error) {
+            const status = [429, 502, 503, 504].includes(error.status) ? error.status : 503;
+            const mensagens = {
+                429: 'Há muitas solicitações no momento. Aguarde um pouco e tente novamente.',
+                502: 'Não foi possível responder agora. Tente novamente em alguns instantes.',
+                503: 'O assistente está temporariamente indisponível para esta pergunta. As consultas escolares continuam disponíveis.',
+                504: 'A resposta demorou mais que o esperado. Tente novamente em alguns instantes.'
+            };
+            return res.status(status).json({ erro: mensagens[status] });
         }
     };
 }

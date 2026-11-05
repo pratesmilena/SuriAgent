@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "compare:ai": "node scripts/compare-ai.js",
+    "check:school": "node scripts/check-school.js"
   },
   "keywords": [],
   "author": "",

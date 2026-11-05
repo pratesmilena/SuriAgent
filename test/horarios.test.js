@@ -60,3 +60,8 @@ test('consulta apenas a tabela e colunas autorizadas, com filtros exatos e orden
         ['order', 'numero_aula', { ascending: true }]
     ]);
 });
+
+test('permissão negada no banco retorna diagnóstico seguro na rota de horários', async t => {
+    const response = await request(t, 'turma=3C&dia=SEXTA', async () => { throw Object.assign(new Error('detalhes internos'), { code: '42501' }); });
+    assert.equal(response.status,503);assert.equal(response.body.codigo,'LEITURA_ESCOLAR_NAO_AUTORIZADA');assert.doesNotMatch(response.body.erro,/internos/);
+});

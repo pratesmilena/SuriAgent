@@ -2,8 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const db = require('./database');
-const { GoogleGenAI } = require('@google/genai');
+const { publicConfig, criarDiagnostico } = require('./ai');
 const { criarConsultaHorarios } = require('./horarios');
+const { criarPerguntaEscola, informacoesEscola } = require('./escola');
 const { rateLimit } = require('express-rate-limit');
 
 const app = express();
@@ -25,37 +26,11 @@ for (const [route, file] of Object.entries(assets)) {
 }
 app.use(express.static(path.join(__dirname, 'public')));
 
-const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 app.get('/api/horarios', criarConsultaHorarios());
-
-// Endpoint para diagnosticar erro com Gemini
-app.post('/api/diagnosticar', async (req, res) => {
-    const { logErro } = req.body || {};
-    
-    if (typeof logErro !== 'string' || !logErro.trim() || logErro.length > 10000) {
-        return res.status(400).json({ erro: 'O log de erro é obrigatório.' });
-    }
-    if (!ai) return res.status(503).json({ erro: 'O assistente de IA ainda não está configurado. A consulta de horários está disponível na aba Horários.' });
-
-    try {
-        const prompt = `Você é o SuriAgent, um Agente de Suporte Técnico experiente para estudantes de tecnologia.
-O usuário enviou a seguinte mensagem/dúvida/erro:
----
-${logErro}
----
-Responda de forma clara, direta e amigável. Use formatação Markdown (com destaque para blocos de código se houver). Focado sempre em ajudar no aprendizado de programação e configuração de ambiente.`;
-
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
-
-        res.json({ solucao: response.text });
-    } catch (error) {
-        console.error('Falha na API do Gemini', { status: error.status || 'indisponivel' });
-        res.status(500).json({ erro: 'Ocorreu um erro ao processar sua solicitação de diagnóstico.' });
-    }
-});
+app.get('/api/escola', (req, res) => res.json(informacoesEscola()));
+app.post('/api/escola/perguntar', criarPerguntaEscola());
+app.get('/api/ia', (req, res) => res.json(publicConfig()));
+app.post('/api/diagnosticar', criarDiagnostico());
 
 // Endpoint para listar templates
 app.get('/api/templates', (req, res) => {

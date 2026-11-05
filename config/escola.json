@@ -1,0 +1,11 @@
+{
+  "nome": "Escola Estadual República do Suriname",
+  "endereco": "Antônio João de Medeiros, 810 — Itaim Paulista, São Paulo — SP",
+  "fonte": "Endereço informado pela responsável pelo projeto em 04/11/2026",
+  "origem": "configuracao-confirmada",
+  "conhecimentos": {
+    "respostaColuna": "conteudo",
+    "assuntoColuna": "id",
+    "localizacaoAssunto": "4"
+  }
+}

@@ -736,3 +736,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[t
         animation:none!important;
     }
 }
+
+.message-content.school-answer {
+    white-space: pre-wrap;
+}
+.school-examples .btn {
+    border-color: var(--border);
+    color: var(--green);
+    font-size: 12px;
+}
+.school-examples .btn:hover {
+    background: #263b25;
+}

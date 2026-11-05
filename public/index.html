@@ -10,6 +10,7 @@
     <script defer src="/vendor/bootstrap.bundle.min.js"></script>
     <script defer src="/vendor/marked.umd.js"></script>
     <script defer src="/vendor/purify.min.js"></script>
+    <script defer src="ai-client.js"></script>
     <script defer src="app.js"></script>
 </head>
 <body>
@@ -47,8 +48,9 @@
                     <p class="source-note"><span aria-hidden="true">◈</span> Fonte: horários cadastrados pela escola. Em caso de divergência, confirme com a secretaria.</p>
                 </section>
                 <section class="tab-pane fade" id="chat-panel" role="tabpanel" aria-labelledby="chat-tab" tabindex="0">
-                    <div class="section-heading"><p class="eyebrow text-green">APRENDER EM BOA COMPANHIA</p><h1>Olá, eu sou o <span class="text-purple">Suri.</span></h1><p>Seu assistente para dúvidas de programação e tecnologia.</p></div>
-                    <div class="chat-card card"><div class="chat-area" id="chat-history" role="log" aria-label="Conversa com o assistente" aria-live="polite" aria-relevant="additions text"><div class="welcome-screen" id="welcome-screen"><span class="chat-spark" aria-hidden="true">✧</span><h2>O que vamos aprender hoje?</h2><p>Conte sua dúvida ou compartilhe um erro de código.</p><p class="small">Para horários oficiais, use a aba Horários de aula.</p></div></div>
+                    <div class="section-heading"><p class="eyebrow text-green">APRENDER EM BOA COMPANHIA</p><h1>Olá, eu sou o <span class="text-purple">Suri.</span></h1><p>Pergunte sobre suas aulas, a escola e tecnologia.</p></div>
+                    <div class="card p-3 mb-3"><label for="ai-provider" class="form-label">Inteligência artificial</label><div class="d-flex flex-wrap gap-2"><select id="ai-provider" class="form-select flex-grow-1" style="width:auto" aria-describedby="ai-provider-note"><option value="gemini">Google Gemini</option></select><button id="puter-connect" type="button" class="btn btn-suri" hidden>Conectar ao Puter</button></div><p id="ai-provider-note" class="form-text mb-0" role="status">Verificando os provedores disponíveis…</p></div>
+                    <div class="school-examples d-flex flex-wrap gap-2 mb-3" aria-label="Exemplos de perguntas"><button type="button" class="btn btn-outline-secondary" data-school-question="Onde fica a escola?">Onde fica a escola?</button><button type="button" class="btn btn-outline-secondary" data-school-question="Quais são as aulas do 3ºC (DS) na sexta-feira?">Aulas por turma e dia</button></div><div class="chat-card card"><div class="chat-area" id="chat-history" role="log" aria-label="Conversa com o assistente" aria-live="polite" aria-relevant="additions text"><div class="welcome-screen" id="welcome-screen"><span class="chat-spark" aria-hidden="true">✧</span><h2>O que vamos aprender hoje?</h2><p>Conte sua dúvida ou compartilhe um erro de código.</p><p class="small">Horários são consultados na base escolar, sem depender de uma chave de IA.</p></div></div>
                     <div class="input-container"><form id="chat-form" class="chat-form"><label for="user-input" class="visually-hidden">Sua mensagem para o Suri</label><input type="text" id="user-input" placeholder="Escreva sua dúvida…" autocomplete="off" maxlength="10000" required><button type="submit" class="btn btn-suri" id="send-btn" aria-label="Enviar mensagem">Enviar →</button></form><p class="disclaimer">A IA pode cometer erros. Confira as informações importantes.</p></div></div>
                 </section>
             </div>

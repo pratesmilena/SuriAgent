@@ -71,6 +71,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatHistory = document.getElementById('chat-history');
     const welcomeScreen = document.getElementById('welcome-screen');
     const sendBtn = document.getElementById('send-btn');
+    const providerSelect = document.getElementById('ai-provider');
+    const providerNote = document.getElementById('ai-provider-note');
+    const puterConnect = document.getElementById('puter-connect');
+    let providers = [];
+    let puterLoading;
+
+    function loadPuter() {
+        if (window.puter) return Promise.resolve(window.puter);
+        if (!puterLoading) puterLoading = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            const timer = setTimeout(() => { script.remove(); puterLoading = null; reject(new Error('Não foi possível carregar o Puter. Tente novamente.')); }, 15000);
+            script.src = 'https://js.puter.com/v2/';
+            script.onload = () => { clearTimeout(timer); resolve(window.puter); };
+            script.onerror = () => { clearTimeout(timer); script.remove(); puterLoading = null; reject(new Error('Não foi possível carregar o Puter.')); };
+            document.head.append(script);
+        });
+        return puterLoading;
+    }
+
+    async function updateProvider() {
+        const info = providers.find(item => item.id === providerSelect.value);
+        const browser = providerSelect.value === 'puter';
+        puterConnect.hidden = !browser;
+        providerNote.textContent = browser
+            ? 'Puter usa sua conta pessoal e pode exigir créditos ou ter cotas. As mensagens são enviadas ao Puter. Clique em Conectar antes de conversar.'
+            : info?.available ? `${info.label} · ${info.model}. Mensagens são enviadas a esse provedor. Horários e localização usam primeiro as informações confirmadas da escola.`
+                : 'Provedor sem chave configurada no servidor. Configure a chave ou selecione Puter para usar sua conta pessoal.';
+        if (browser) {
+            puterConnect.disabled = true;
+            try { await loadPuter(); } catch (error) { providerNote.textContent = error.message; }
+            finally { puterConnect.disabled = false; }
+        }
+    }
+
+    puterConnect.addEventListener('click', () => {
+        if (!window.puter) { updateProvider(); return; }
+        // Abrir autenticação dentro do clique, para não bloquear o popup no navegador.
+        window.puter.auth.signIn().then(() => {
+            providerNote.textContent = 'Puter conectado. As mensagens usam a cota da sua conta pessoal.';
+        }).catch(() => { providerNote.textContent = 'Conexão ao Puter cancelada ou indisponível. Tente novamente.'; });
+    });
+    providerSelect.addEventListener('change', updateProvider);
+    fetch('/api/ia', { signal: AbortSignal.timeout(10000) }).then(async response => {
+        if (!response.ok) throw new Error('configuração indisponível');
+        const config = await response.json();
+        providers = config.providers;
+        providerSelect.replaceChildren(...providers.map(info => {
+            const option = document.createElement('option');
+            option.value = info.id;
+            option.textContent = `${info.label}${info.available ? '' : ' — configurar chave'}`;
+            return option;
+        }));
+        providerSelect.value = config.defaultProvider;
+        updateProvider();
+    }).catch(() => { providerNote.textContent = 'Não foi possível verificar os provedores. Recarregue a página.'; });
+
+    document.querySelectorAll('[data-school-question]').forEach(button => {
+        button.addEventListener('click', () => {
+            userInput.value = button.dataset.schoolQuestion;
+            userInput.focus();
+        });
+    });
 
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -93,15 +155,45 @@ document.addEventListener('DOMContentLoaded', () => {
         // Bloqueia o input enquanto processa
         userInput.disabled = true;
         sendBtn.disabled = true;
+        providerSelect.disabled = true;
 
         try {
+            // Consultar primeiro o backend escolar, inclusive ao usar Puter.
+            // Não enviar perguntas sobre dados oficiais a um modelo sem consultar a base.
+            const schoolResponse = await fetch('/api/escola/perguntar', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pergunta: text }), signal: AbortSignal.timeout(15000)
+            });
+            const schoolData = await schoolResponse.json();
+            if (!schoolResponse.ok) throw new Error(schoolData.erro || 'Não foi possível consultar os dados escolares.');
+            if (schoolData.handled) {
+                removeElement(loadingId);
+                addMessageToChat(schoolData.solucao, 'ai', true);
+                return;
+            }
+            if (providerSelect.value === 'puter') {
+                const puter = await loadPuter();
+                if (!puter.auth.isSignedIn()) throw new Error('Clique em Conectar ao Puter e entre na sua conta antes de enviar a mensagem.');
+                const model = providers.find(info => info.id === 'puter')?.model;
+                let timer;
+                try {
+                    const response = await Promise.race([
+                        puter.ai.chat([{ role: 'system', content: SuriAI.SYSTEM_PROMPT }, { role: 'user', content: text }], { model }),
+                        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('O Puter demorou a responder. Verifique sua conta antes de tentar novamente.')), 60000); })
+                    ]);
+                    removeElement(loadingId);
+                    addMessageToChat(SuriAI.puterText(response), 'ai');
+                } finally { clearTimeout(timer); }
+                return;
+            }
             // Reaproveitando a rota /api/diagnosticar, enviando o texto como logErro
             const response = await fetch('/api/diagnosticar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ logErro: text, detalhes: '' })
+                body: JSON.stringify({ logErro: text, provider: providerSelect.value }),
+                signal: AbortSignal.timeout(50000)
             });
 
             const data = await response.json();
@@ -122,23 +214,25 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             userInput.disabled = false;
             sendBtn.disabled = false;
+            providerSelect.disabled = false;
             userInput.focus();
         }
     });
 
-    function addMessageToChat(content, sender) {
+    function addMessageToChat(content, sender, plainText = false) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}`;
         
         const contentDiv = document.createElement('div');
         contentDiv.className = sender === 'ai' ? 'message-content markdown-body' : 'message-content';
         
-        if (sender === 'ai') {
-                contentDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
+        if (sender === 'ai' && !plainText) {
+            contentDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
         } else {
             contentDiv.textContent = content;
         }
 
+        if (plainText) contentDiv.classList.add('school-answer');
         msgDiv.appendChild(contentDiv);
         chatHistory.appendChild(msgDiv);
         scrollToBottom();
@@ -150,13 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv.className = 'message ai';
         msgDiv.id = id;
         
-        msgDiv.innerHTML = `
-            <div class="loading-dots">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-            </div>
-        `;
+        msgDiv.innerHTML = '<div class="loading-dots" role="status">Suri está pensando…</div>';
         
         chatHistory.appendChild(msgDiv);
         scrollToBottom();

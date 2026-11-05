@@ -1,4 +1,5 @@
 const { consultarHorarios } = require('./supabase');
+const { erroConsulta } = require('./erros-consulta');
 const DIAS = new Set(['SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA']);
 
 function criarConsultaHorarios(consultar = consultarHorarios) {
@@ -13,11 +14,8 @@ function criarConsultaHorarios(consultar = consultarHorarios) {
             return res.json({ turma, dia, aulas });
         } catch (error) {
             console.error('Falha na consulta de horários', { codigo: error.code || 'indisponivel' });
-            return res.status(error.status === 503 ? 503 : 502).json({
-                erro: error.status === 503
-                    ? 'Consulta de horários indisponível. Configure o acesso ao Supabase no servidor.'
-                    : 'Não foi possível consultar os horários. Tente novamente mais tarde.'
-            });
+            const falha = erroConsulta(error);
+            return res.status(falha.status).json({ erro: falha.mensagem, codigo: falha.codigo });
         }
     };
 }

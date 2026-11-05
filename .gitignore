@@ -433,3 +433,6 @@ FodyWeavers.xsd
 *.msm
 *.msp
 *.env
+
+# Relatórios locais de comparação de IA
+.local/

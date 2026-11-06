@@ -37,8 +37,10 @@ A consulta real a `/auth/v1/settings` confirmou `external.google=false`. O aplic
 
 ## Boas-vindas e perfil conectado
 
-Após confirmar a sessão com getUser, o site mostra o nome recebido do Google/Supabase, iniciais, uma mensagem de boas-vindas e indicação de perfil conectado. O cabeçalho e o menu lateral abrem Meu perfil, que exibe nome, e-mail da própria conta e Sair do perfil. Há também um botão de saída no destaque de boas-vindas, acessível no computador e no celular.
+Após confirmar a sessão com getUser, o cabeçalho indica Perfil conectado e oferece Meu perfil. O nome, o e-mail da própria conta e Sair do perfil ficam somente na janela Seu perfil SuriAgent, acessível também pelo menu lateral. Após um login iniciado no site e confirmado pelo Supabase, uma notificação de boas-vindas aparece por cinco segundos e pode ser fechada antes. Ela não reaparece só por atualizar a página ou restaurar a sessão. A faixa de boas-vindas foi removida das páginas de conteúdo.
 
 A ação de sair usa signOut com escopo local: encerra o perfil neste dispositivo e restaura o modo visitante, sem sair da conta Google em outros serviços. A restauração da sessão ao recarregar usa novamente o serviço Auth para confirmar o usuário. Falhas de saída mostram um aviso separado e não substituem o nome da conta por uma mensagem de erro. Dados de nome e e-mail são inseridos como texto, sem interpretar HTML; ao sair, são removidos da interface. Não foram criadas tabelas novas nem armazenamento público de perfis.
 
 A validação visual de sessão restaurada, nome, boas-vindas, modal, falha de logout, nova entrada e saída foi feita com SDK/sessão simulados no Chromium; o assistente não entrou na conta Google da responsável. O modo visitante e as consultas públicas permanecem disponíveis.
+
+A notificação usa um marcador temporário em sessionStorage durante o redirecionamento OAuth, sem guardar nome, e-mail ou token nesse marcador. Só é exibida após getUser confirmar a conta. O marcador é consumido uma vez, expira após dez minutos e é descartado em cancelamento/falha de login ou saída. A identificação da conta permanece na janela Meu perfil, sem faixa permanente nas abas.

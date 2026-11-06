@@ -6,27 +6,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const signedOut = document.getElementById('signed-out-view');
     const signedIn = document.getElementById('signed-in-view');
     const signOutButtons = [...document.querySelectorAll('[data-sign-out]')];
-    const logoutErrors = [document.getElementById('logout-error'), document.getElementById('profile-logout-error')];
+    const logoutErrors = [document.getElementById('logout-error')];
     let client;
     let signingIn = false;
     let googleAvailable = false;
     let verificationId = 0;
+    const loginMarker = 'suri-login-pending';
+    const welcomeToast = document.getElementById('welcome-toast');
+    const hasAuthError = new URLSearchParams(location.search).has('error') || location.hash.includes('error=');
+    function clearPendingWelcome() { try { sessionStorage.removeItem(loginMarker); } catch {} }
+    if (hasAuthError) clearPendingWelcome();
+    function welcomeAfterLogin(name) {
+        let pending;
+        try { pending = JSON.parse(sessionStorage.getItem(loginMarker) || 'null'); } catch {}
+        clearPendingWelcome();
+        const age = Date.now() - pending?.startedAt;
+        if (!Number.isFinite(age) || age < 0 || age > 10 * 60 * 1000 || hasAuthError) return;
+        document.getElementById('welcome-toast-message').textContent = `Bem-vindo(a), ${name}! Que bom ter você por aqui.`;
+        bootstrap.Toast.getOrCreateInstance(welcomeToast, { delay: 5000, autohide: true }).show();
+    }
     function render(user) {
         const metadata = user?.user_metadata || {};
         const candidate = [metadata.full_name, metadata.name, user?.email?.split('@')[0]].find(value => typeof value === 'string' && value.trim());
         const name = candidate?.trim().slice(0, 120) || 'estudante';
-        const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => Array.from(word)[0]).join('').toLocaleUpperCase('pt-BR');
         signedOut.hidden = !!user;
         signedIn.hidden = !user;
         accountStatus.textContent = user ? 'Perfil conectado' : 'Visitante';
         accountOpen.textContent = user ? 'Meu perfil' : 'Entrar →';
         document.getElementById('account-name').textContent = user ? name : '';
         document.getElementById('account-email').textContent = user && typeof user.email === 'string' ? user.email : '';
-        document.getElementById('profile-summary').hidden = !user;
-        document.getElementById('profile-welcome').textContent = user ? `Bem-vindo(a), ${name}!` : '';
-        document.getElementById('profile-avatar').textContent = user ? initials : '';
-        document.getElementById('sidebar-profile-name').textContent = user ? name : 'Aprenda do seu jeito';
-        document.getElementById('sidebar-profile-note').textContent = user ? 'Você está no seu perfil.' : 'Com sua conta ou como visitante.';
+        document.getElementById('sidebar-profile-name').textContent = 'Aprenda do seu jeito';
+        document.getElementById('sidebar-profile-note').textContent = user ? 'Gerencie sua conta em Meu perfil.' : 'Com sua conta ou como visitante.';
         document.getElementById('sidebar-profile-open').textContent = user ? 'Meu perfil' : 'Minha conta';
         document.getElementById('account-title').hidden = !!user;
         document.getElementById('profile-dialog-title').hidden = !user;
@@ -35,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('visitor-divider').hidden = !!user;
         document.getElementById('continue-visitor').hidden = !!user;
         logoutErrors.forEach(element => { element.hidden = true; element.textContent = ''; });
-        if (!user) { signingIn = false; google.disabled = !googleAvailable; }
+        if (user) welcomeAfterLogin(name);
+        else { bootstrap.Toast.getInstance(welcomeToast)?.hide(); signingIn = false; google.disabled = !googleAvailable; }
     }
     async function verifySession() {
         const current = ++verificationId;
@@ -56,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     google.addEventListener('click', async () => {
         if (!client || signingIn) return;
+        try { sessionStorage.setItem(loginMarker, JSON.stringify({ startedAt: Date.now() })); } catch {}
         signingIn = true; google.disabled = true;
         status.textContent = 'Abrindo o acesso seguro do Google…';
         try {
@@ -64,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } });
             if (error) throw error;
         } catch {
+            clearPendingWelcome();
             status.textContent = 'Não foi possível iniciar o login Google. Continue como visitante ou tente novamente mais tarde.';
             google.disabled = !googleAvailable; signingIn = false;
         }
@@ -77,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { error } = await client.auth.signOut({ scope: 'local' });
             if (error) throw error;
             ++verificationId;
+            clearPendingWelcome();
             render(null);
             status.textContent = 'Você saiu do perfil neste dispositivo. Continue como visitante quando quiser.';
         } catch {

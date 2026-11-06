@@ -807,44 +807,19 @@ body { background-image: radial-gradient(ellipse at 90% 0%, #7751be18, transpare
 .hero-card .eyebrow { color: #a9f1ce; }
 .hero-card p:not(.eyebrow) { color: #e0d9ed; }
 
-.profile-summary {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 18px;
-    border: 1px solid #416b51;
-    background: linear-gradient(120deg, #233d2c, #292137);
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
-}
-.profile-summary[hidden] { display: none; }
-.profile-avatar {
-    width: 50px;
-    height: 50px;
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    border-radius: 16px;
-    background: #b197ff;
-    color: #24183d;
-    font-size: 18px;
-    font-weight: 700;
-}
-.profile-copy { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.profile-copy .eyebrow { color: #96ebba; font-size: 8px; margin-bottom: 8px; }
-.profile-copy h2 { font-size: 19px; letter-spacing: -.3px; margin: 0 0 6px; }
-.profile-copy p:last-child { font-size: 11px; color: #bccdc0; margin: 0; }
-.profile-signout { flex-shrink: 0; }
 .profile-email { color: #b7c8bb; font-size: 13px; overflow-wrap: anywhere; }
 .profile-error { color: #ffb5b5; font-size: 12px; margin: 14px 0 0; }
-#profile-logout-error { flex-basis: 100%; }
 #sidebar-profile-name { overflow-wrap: anywhere; }
-@media(max-width: 575px) {
-    .profile-summary { padding: 18px; gap: 12px; }
-    .profile-avatar { width: 42px; height: 42px; border-radius: 12px; }
-    .profile-copy h2 { font-size: 16px; }
-    .profile-signout { width: 100%; }
-}
 
 [hidden] { display: none !important; }
+
+.welcome-toast {
+    max-width: calc(100vw - 32px);
+    border: 1px solid #6c5593;
+    background: #24312a;
+    color: #e7f6ec;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px #0005;
+    overflow-wrap: anywhere;
+}
+.welcome-toast .toast-body { font-size: 13px; line-height: 1.7; }

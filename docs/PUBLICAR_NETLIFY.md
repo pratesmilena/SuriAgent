@@ -83,3 +83,21 @@ Build estático e empacotamento da Function foram testados localmente. A Functio
 O limitador atual usa memória por instância, identificando o IP do cliente pelo header de plataforma Netlify `x-nf-client-connection-ip`. Ele não é um limitador global distribuído nem garantia de controle de gastos de IA. Os limites de tempo, consumo e gratuidade dependem do plano vigente; consulte o painel da hospedagem e do provedor de IA.
 
 Referência oficial consultada: https://docs.netlify.com/build/frameworks/framework-setup-guides/express/
+
+## Se a publicação não receber a configuração
+
+Diagnóstico observado em 06/11/2026: o site público retornava BANCO_ESCOLAR_NAO_CONFIGURADO em horários e available=false no login. Na mesma ocasião, as consultas diretas ao Supabase com a configuração local retornavam horários/endereço e o serviço informava Google habilitado. Portanto, o login público estava sendo bloqueado antes do OAuth, por configuração ausente/inválida na Function, e não havia evidência para alterar novamente GRANT/RLS.
+
+Depois do deploy desta atualização, abrir `https://suriagent.netlify.app/api/status`. A resposta não mostra chaves ou valores das variáveis:
+
+- supabase.urlConfigurada: deve ser true.
+- supabase.urlValida: deve ser true; usar a URL do projeto, sem aspas, sinais de igual ou caminho do dashboard.
+- supabase.chaveConfigurada: deve ser true.
+- login.configuracaoPublicaValida: deve ser true.
+- revisao: identifica o commit da publicação, quando fornecido pela hospedagem.
+
+Se algum campo for false, abrir `https://app.netlify.com/projects/suriagent/configuration/env`. Conferir nomes exatos SUPABASE_URL e SUPABASE_PUBLISHABLE_KEY; nomes não são os valores. All scopes é uma opção válida. Conferir o contexto de produção, sem incluir espaços nos nomes e sem aspas nos valores.
+
+Em `https://app.netlify.com/projects/suriagent/deploys`, iniciar Trigger deploy → Deploy project (ou equivalente) e aguardar o deploy de produção ficar Published. Um build de preview ou deploy que falhou não atualiza necessariamente o domínio de produção. Variáveis salvas no Codex ou em .env local não são automaticamente transferidas ao Netlify.
+
+Repetir /api/status e /api/horarios/catalogo. Só após a configuração pública ficar válida testar o Google. A habilitação remota do provedor não substitui configurar o domínio https://suriagent.netlify.app em Site URL e Redirect URLs no Supabase. A conclusão do consentimento e retorno OAuth ainda depende de teste real com a conta da responsável.

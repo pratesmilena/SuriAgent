@@ -4,7 +4,7 @@ Assistente estudantil da Escola Estadual República do Suriname. Interface respo
 
 ## Estado da validação
 
-Os 62 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
+Os 66 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
 
 A aba Horários carrega automaticamente as turmas de `GET /api/horarios/catalogo`. Os dias sem registros visíveis para a turma ficam indisponíveis. `dia=SEMANA` consulta segunda a sexta e ordena por dia e número da aula; o chat aceita “Quais são as aulas do 3C de segunda a sexta?” e “Quais são as turmas?”. Apelidos são aceitos apenas quando identificam uma única turma cadastrada; o curso nunca é adivinhado em casos ambíguos. O catálogo usa paginação e informa falha em vez de truncar silenciosamente uma lista acima de seu limite de 10 mil linhas.
 
@@ -115,3 +115,5 @@ Veja [a auditoria dos oito tópicos e o guia de preenchimento](docs/BASE_ESCOLAR
 O repositório inclui netlify.toml, build estático e Function Express. Use `npm run build:netlify`, publique `dist` e mantenha as Functions em `netlify/functions`. O site deve ser importado pelo GitHub para compilar o Plasma e empacotar a API. Cadastre as variáveis Supabase e a chave do serviço de IA nas configurações da hospedagem, com escopo de execução das Functions.
 
 Horários, endereço e os conteúdos publicados usam o Supabase. Templates de código continuam locais em SQLite e ficam indisponíveis na Function até uma migração para armazenamento persistente. O login Google requer o domínio público autorizado no Supabase. Veja [o passo a passo de publicação](docs/PUBLICAR_NETLIFY.md). Nenhum deploy na conta Netlify é criado só por enviar esse código ao GitHub.
+
+Para diagnóstico da publicação, `GET /api/status` mostra somente a presença/validade da configuração e a revisão do deploy, sem revelar valores ou chaves. URLs com espaços externos são normalizadas; URL de dashboard, aspas e configuração ausente são recusadas. Se o catálogo não carregar, o campo passa a indicar indisponibilidade, em vez de permanecer com aparência de carregamento. Consulte a seção de diagnóstico no guia Netlify antes de alterar RLS ou criar outra chave.

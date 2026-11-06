@@ -4,7 +4,8 @@ const { criarDiagnostico } = require('./ai');
 const { criarConsultaHorarios, criarCatalogoHorarios } = require('./horarios');
 const { criarPerguntaEscola, informacoesEscola } = require('./escola');
 const { rateLimit } = require('express-rate-limit');
-const { authConfig } = require('./auth-config');
+const { authConfig, publicAuthConfig } = require('./auth-config');
+const { diagnosticoConfiguracao } = require('./configuracao-supabase');
 const { criarListaConteudos } = require('./conteudos-escola');
 
 function createApp({ templatesDb: db = null, platform = 'local' } = {}) {
@@ -25,6 +26,11 @@ function createApp({ templatesDb: db = null, platform = 'local' } = {}) {
         app.use(express.static(path.join(__dirname, 'public')));
     }
 
+    app.get('/api/status', (req, res) => {
+        const revision = /^[a-f0-9]{7,40}$/i.test(process.env.COMMIT_REF || '') ? process.env.COMMIT_REF.slice(0, 12) : null;
+        res.json({ ambiente: platform, revisao: revision, supabase: diagnosticoConfiguracao(),
+            login: { configuracaoPublicaValida: publicAuthConfig().available } });
+    });
     app.get('/api/horarios/catalogo', criarCatalogoHorarios());
     app.get('/api/horarios', criarConsultaHorarios());
     app.get('/api/escola', (req, res) => res.json(informacoesEscola()));

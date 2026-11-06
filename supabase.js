@@ -1,14 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
 const { DIAS, escolherTurma, montarCatalogo } = require('./catalogo-horarios');
+const { lerConfiguracao } = require('./configuracao-supabase');
 
 let client;
 function getSupabase() {
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
-        const error = new Error('Consulta de horários indisponível. Configure o acesso ao Supabase no servidor.');
-        error.status = 503;
-        throw error;
-    }
-    client ??= createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+    const config = lerConfiguracao();
+    client ??= createClient(config.url, config.key, {
         auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
     });
     return client;

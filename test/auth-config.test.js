@@ -37,3 +37,9 @@ test('falha do serviço de autenticação não interrompe a configuração de vi
     assert.equal(config.available, true); assert.equal(config.googleEnabled, null);
     assert.ok(!JSON.stringify(config).includes('privados'));
 });
+
+test('serviço de autenticação recusando a chave não habilita um botão de login sem acesso',async()=>{
+ for(const status of [401,403]){
+  const result=await authConfig(env,async()=>({ok:false,status}));assert.equal(result.available,false);assert.equal(result.code,'SUPABASE_AUTH_ACESSO_RECUSADO');assert.ok(!JSON.stringify(result).includes('sb_publishable_'));
+ }
+});

@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             horariosSubmit.disabled = false;
             horariosStatus.textContent = `${turmas.length} turmas disponíveis. Escolha a turma e o dia ou consulte a semana completa.`;
         } catch (error) {
+            turmaSelect.replaceChildren(new Option('Turmas indisponíveis — tente novamente', ''));
             horariosStatus.classList.add('error');
             horariosStatus.textContent = error.name === 'TimeoutError' ? 'O carregamento demorou mais que o esperado. Tente novamente.' : error.message;
             catalogoRetry.hidden = false;

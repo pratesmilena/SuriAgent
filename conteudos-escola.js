@@ -1,9 +1,11 @@
 const { getSupabase } = require('./supabase');
-const TOPICOS = Object.freeze({ historia: 'História da escola', cursos: 'Cursos oferecidos', projetos: 'Projetos desenvolvidos', ambiente: 'Ambiente escolar', eventos: 'Eventos da escola', espacos: 'Espaços da escola', faq: 'Perguntas frequentes' });
+const { consultarProfessores } = require('./professores-escola');
+const TOPICOS = Object.freeze({ historia: 'História da escola', cursos: 'Cursos oferecidos', projetos: 'Projetos desenvolvidos', ambiente: 'Ambiente escolar', eventos: 'Eventos da escola', espacos: 'Espaços da escola', faq: 'Perguntas frequentes', professores: 'Professores e disciplinas' });
 function normalizar(texto) { return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
 function identificarTopicos(pergunta) {
     const texto = normalizar(pergunta);
     const regras = {
+        professores: /\b(?:professor|professora|professores|professoras|docente|docentes|leciona|lecionam)\b|quem ensina/,
         historia: /historia (?:da |desta |de nossa )?escola|fundacao da escola|quando.{0,30}(?:fundada|inaugurada|criada)|quem fundou|historia.{0,25}suriname/,
         cursos: /cursos oferecidos|(?:que|quais).{0,20}cursos|cursos.{0,35}(?:escola|oferec|disponiveis)|ensino (?:medio|fundamental)|curso tecnico/,
         projetos: /quais.{0,20}projetos|projetos desenvolvidos|projetos.{0,25}escola/,
@@ -20,6 +22,7 @@ function termosFaq(pergunta) {
 }
 async function consultarConteudos(topico, pergunta = '', source = getSupabase(), agora = new Date()) {
     if (!Object.hasOwn(TOPICOS, topico)) throw Object.assign(new Error('Tópico inválido.'), { status: 400 });
+    if (topico === 'professores') return consultarProfessores(pergunta, source);
     const eventos = topico === 'eventos';
     const tabela = eventos ? 'escola_eventos' : 'escola_conteudos';
     let query = source.from(tabela).select(eventos
@@ -55,9 +58,10 @@ function formatarConteudos(resultado) {
             const data = Number.isNaN(inicio.getTime()) ? 'data não informada' : inicio.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
             extra = `\nQuando: ${data}${row.local ? '\nLocal: ' + row.local : ''}${row.publico_alvo ? '\nPúblico: ' + row.publico_alvo : ''}`;
         }
+        if (resultado.topico === 'professores') return `${row.professor} — ${row.disciplina} (${row.etapa.replace(/_/g, ' ')})\nFonte: ${row.fonte}\nVerificado em: ${row.verificado_em}`;
         return `${row.titulo}\n${row.conteudo}${extra}\nFonte: ${row.fonte || 'Cadastro publicado pela escola'}${row.verificado_em ? '\nVerificado em: ' + row.verificado_em : ''}`;
     });
-    return `${titulo}\n\n${blocos.join('\n\n')}${resultado.total > resultado.registros.length ? '\n\nExibindo os primeiros 20 registros. Consulte a secretaria para mais informações.' : ''}`;
+    return `${titulo}\n\n${blocos.join('\n\n')}${resultado.total > resultado.registros.length ? `\n\nExibindo ${resultado.registros.length} de ${resultado.total} registros. Consulte a secretaria para mais informações.` : ''}`;
 }
 function criarListaConteudos(consultar = consultarConteudos) {
     return async (req, res) => {

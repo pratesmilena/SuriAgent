@@ -39,7 +39,9 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
             return res.status(400).json({ erro: 'Informe uma pergunta de até 10.000 caracteres.' });
         }
         const intencao = interpretar(pergunta);
-        const topicos = identificarTopicos(pergunta);
+        let topicos = identificarTopicos(pergunta);
+        if (intencao.turmas.length && intencao.dias.length) topicos = topicos.filter(topico => topico !== 'professores');
+        if (topicos.includes('professores')) topicos = topicos.filter(topico => topico !== 'cursos');
         if (!topicos.length && !intencao.horario && !intencao.localizacao && !intencao.listaTurmas && /\bescola\b|suriname/.test(normalizar(pergunta))) topicos.push('faq');
         if (!intencao.horario && !intencao.localizacao && !intencao.listaTurmas && !topicos.length) return res.json({ handled: false });
         const partes = [];

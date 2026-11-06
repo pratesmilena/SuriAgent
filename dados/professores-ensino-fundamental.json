@@ -1,0 +1,292 @@
+[
+  {
+    "codigo": "fundamental-miria-matematica",
+    "professor": "Miria",
+    "disciplina": "Matemática",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-miria-orientacao-de-estudo-de-matematica",
+    "professor": "Miria",
+    "disciplina": "Orientação de Estudo de Matemática",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-iara-tecnologia",
+    "professor": "Iara",
+    "disciplina": "Tecnologia",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-iara-ciencias",
+    "professor": "Iara",
+    "disciplina": "Ciências",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-joyce-portugues",
+    "professor": "Joyce",
+    "disciplina": "Português",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-joyce-redacao",
+    "professor": "Joyce",
+    "disciplina": "Redação",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-enilson-geografia",
+    "professor": "Enilson",
+    "disciplina": "Geografia",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-enilson-projeto-de-vida",
+    "professor": "Enilson",
+    "disciplina": "Projeto de Vida",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-luciana-historia",
+    "professor": "Luciana",
+    "disciplina": "História",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-luciana-tecnologia",
+    "professor": "Luciana",
+    "disciplina": "Tecnologia",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-neusa-historia",
+    "professor": "Neusa",
+    "disciplina": "História",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-neusa-projeto-de-vida",
+    "professor": "Neusa",
+    "disciplina": "Projeto de Vida",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-anderson-matematica",
+    "professor": "Anderson",
+    "disciplina": "Matemática",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-anderson-orientacao-de-estudos-de-matematica",
+    "professor": "Anderson",
+    "disciplina": "Orientação de Estudos de Matemática",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-djalma-orientacao-de-portugues",
+    "professor": "Djalma",
+    "disciplina": "Orientação de Português",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-djalma-portugues",
+    "professor": "Djalma",
+    "disciplina": "Português",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-katia-educacao-fisica",
+    "professor": "Katia",
+    "disciplina": "Educação Física",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-lubueno-geografia",
+    "professor": "LuBueno",
+    "disciplina": "Geografia",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-lubueno-tecnologia",
+    "professor": "LuBueno",
+    "disciplina": "Tecnologia",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-cicero-ciencias",
+    "professor": "Cicero",
+    "disciplina": "Ciências",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-altair-artes",
+    "professor": "Altair",
+    "disciplina": "Artes",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-elis-ingles",
+    "professor": "Elis",
+    "disciplina": "Inglês",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-elis-projeto-de-vida",
+    "professor": "Elis",
+    "disciplina": "Projeto de Vida",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-tiago-matematica",
+    "professor": "Tiago",
+    "disciplina": "Matemática",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-tiago-orientacao-de-estudos-de-matematica",
+    "professor": "Tiago",
+    "disciplina": "Orientação de Estudos de Matemática",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-olimpia-redacao",
+    "professor": "Olimpia",
+    "disciplina": "Redação",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-ale-portugues",
+    "professor": "Ale",
+    "disciplina": "Português",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-ale-redacao",
+    "professor": "Ale",
+    "disciplina": "Redação",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": null
+  },
+  {
+    "codigo": "fundamental-marcelo-efin",
+    "professor": "Marcelo",
+    "disciplina": "Efin (?)",
+    "etapa": "ENSINO_FUNDAMENTAL",
+    "fonte": "Relação informada pela responsável pelo projeto",
+    "confirmado": false,
+    "publicado": false,
+    "observacao": "Disciplina informada como Efin (?); confirmar nome completo."
+  }
+]

@@ -64,10 +64,16 @@ A integração está preparada para perguntas como:
 - Quais disciplinas a professora Miria leciona no Ensino Fundamental?
 - Quem ensina Matemática no Ensino Fundamental?
 
-O backend consulta a tabela por etapa e busca textual em português, selecionando apenas registros confirmados/publicados. Uma pergunta sobre professor de uma turma/dia/aula específicos continua usando horario_aulatarde; o cadastro docente não substitui a grade. A tabela ainda precisa ser criada e preenchida/publicada no Supabase para esse novo diretório responder.
+O backend combina os vínculos confirmados/publicados do cadastro docente com professor e disciplina dos horários da tarde. Agrupa vínculos repetidos, informa as turmas e mantém a origem de cada informação. Não é preciso copiar a grade para o cadastro docente. Consultas por etapa usam somente o cadastro, pois a grade não confirma a etapa; consultas por período usam somente horários com período conhecido. Ainda não há integração com uma grade da manhã. Uma pergunta sobre professor de uma turma/dia/aula específicos continua usando horario_aulatarde; o cadastro docente não substitui a grade. A tabela ainda precisa ser criada e preenchida/publicada no Supabase para esse novo diretório responder.
 
 A rota de conteúdo aceita também `GET /api/escola/conteudos/professores`. `npm run check:contents` verifica a disponibilidade desse assunto junto dos conteúdos anteriores. Tabela ainda não criada, ausência de dados publicados e falha de acesso são situações diferentes; nenhuma delas comprova que o professor não trabalha na escola.
 
 ## Validação
 
 Os testes executam o SQL em PostgreSQL local (PGlite), conferem os 29 vínculos/17 professores, repetição sem duplicar, preservação de correções e RLS escondendo rascunhos. Testam a consulta com o SDK Supabase em HTTP simulado, filtros por nome/etapa e a preservação das consultas da grade. Não houve escrita no banco Supabase remoto.
+
+## Publicar os vínculos já conferidos
+
+Depois de revisar a lista acima, executar `docs/sql/004_publicar_professores_revisados.sql` no SQL Editor do Supabase. O script publica apenas os 29 vínculos originais que correspondam exatamente a código, professor e disciplina, sem observação pendente. Não altera vínculos já publicados ou corrigidos. Para Marcelo importado como Efin (?), aplicar o script 003 antes. A publicação pode retornar menos de 29 linhas se algumas já estiverem publicadas ou tiverem sido editadas; conferir o Table Editor.
+
+Exemplos de perguntas: “Quais matérias a professora Miria leciona?”, “Quem ensina Matemática?”, “Quais disciplinas cada professor leciona na tarde?”. Siglas de disciplinas da grade são mantidas como cadastradas, sem expandir significados por suposição. Os scripts não foram executados remotamente pelo assistente.

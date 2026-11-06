@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.escola_professor_disciplinas (
     codigo text NOT NULL UNIQUE,
     professor text NOT NULL CHECK (length(trim(professor)) > 0),
     disciplina text NOT NULL CHECK (length(trim(disciplina)) > 0),
-    etapa text NOT NULL CHECK (etapa IN ('ENSINO_FUNDAMENTAL','ENSINO_MEDIO','EJA')),
+    etapa text NOT NULL CHECK (etapa IN ('ENSINO_FUNDAMENTAL','ENSINO_MEDIO')),
     observacao text,
     fonte text,
     verificado_em date,

@@ -5,7 +5,7 @@ function normalizar(texto) { return texto.normalize('NFD').replace(/[\u0300-\u03
 function identificarTopicos(pergunta) {
     const texto = normalizar(pergunta);
     const regras = {
-        professores: /\b(?:professor|professora|professores|professoras|docente|docentes|leciona|lecionam)\b|quem ensina/,
+        professores: /\b(?:professor|professora|professores|professoras|prof|profs|docente|docentes|leciona|lecionam|ensina|ensinam|ministra|ministram)\b|quem da aula/,
         historia: /historia (?:da |desta |de nossa )?escola|fundacao da escola|quando.{0,30}(?:fundada|inaugurada|criada)|quem fundou|historia.{0,25}suriname/,
         cursos: /cursos oferecidos|(?:que|quais).{0,20}cursos|cursos.{0,35}(?:escola|oferec|disponiveis)|ensino (?:medio|fundamental)|curso tecnico/,
         projetos: /quais.{0,20}projetos|projetos desenvolvidos|projetos.{0,25}escola/,
@@ -50,7 +50,8 @@ async function consultarConteudos(topico, pergunta = '', source = getSupabase(),
 function formatarConteudos(resultado) {
     const titulo = TOPICOS[resultado.topico];
     if (resultado.status === 'tabela_pendente') return `${titulo}: esta parte da base escolar ainda está sendo preparada. Não há informação oficial disponível para responder agora.`;
-    if (!resultado.registros.length) return `${titulo}: não encontrei informação publicada para esta consulta. Confirme com a secretaria. Não vou completar essa informação por suposição.`;
+    const avisos = resultado.avisos?.length ? '\n\n' + resultado.avisos.join('\n') : '';
+    if (!resultado.registros.length) return `${titulo}: não encontrei informação publicada para esta consulta. Confirme com a secretaria. Não vou completar essa informação por suposição.${avisos}`;
     const blocos = resultado.registros.map(row => {
         let extra = '';
         if (resultado.topico === 'eventos') {
@@ -58,10 +59,18 @@ function formatarConteudos(resultado) {
             const data = Number.isNaN(inicio.getTime()) ? 'data não informada' : inicio.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
             extra = `\nQuando: ${data}${row.local ? '\nLocal: ' + row.local : ''}${row.publico_alvo ? '\nPúblico: ' + row.publico_alvo : ''}`;
         }
-        if (resultado.topico === 'professores') return `${row.professor} — ${row.disciplina} (${row.etapa.replace(/_/g, ' ')})\nFonte: ${row.fonte}\nVerificado em: ${row.verificado_em}`;
+        if (resultado.topico === 'professores') {
+            if (row.origens) {
+                const fontes = row.origens.map(origem => origem.tipo === 'horarios'
+                    ? `Horários da tarde · turmas: ${origem.turmas.join(', ')}. Fonte: ${origem.fonte}.`
+                    : `Cadastro docente · ${origem.etapa.replace(/_/g, ' ')}. Fonte: ${origem.fonte}${origem.verificado_em ? '. Verificado em: ' + origem.verificado_em : ''}.`);
+                return `${row.professor} — ${row.disciplina}\n${fontes.join('\n')}`;
+            }
+            return `${row.professor} — ${row.disciplina} (${row.etapa.replace(/_/g, ' ')})\nFonte: ${row.fonte}\nVerificado em: ${row.verificado_em}`;
+        }
         return `${row.titulo}\n${row.conteudo}${extra}\nFonte: ${row.fonte || 'Cadastro publicado pela escola'}${row.verificado_em ? '\nVerificado em: ' + row.verificado_em : ''}`;
     });
-    return `${titulo}\n\n${blocos.join('\n\n')}${resultado.total > resultado.registros.length ? `\n\nExibindo ${resultado.registros.length} de ${resultado.total} registros. Consulte a secretaria para mais informações.` : ''}`;
+    return `${titulo}\n\n${blocos.join('\n\n')}${resultado.total > resultado.registros.length ? `\n\nExibindo ${resultado.registros.length} de ${resultado.total} registros. Consulte a secretaria para mais informações.` : ''}${avisos}`;
 }
 function criarListaConteudos(consultar = consultarConteudos) {
     return async (req, res) => {

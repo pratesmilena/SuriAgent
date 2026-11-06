@@ -35,3 +35,18 @@ test('cadastro docente importa 17 professores/29 vínculos como rascunho e prese
   await db.exec("UPDATE escola_professor_disciplinas SET professor='Nome revisado' WHERE codigo='fundamental-miria-matematica'");await db.exec(sql);assert.equal((await db.query("SELECT professor FROM escola_professor_disciplinas WHERE codigo='fundamental-miria-matematica'")).rows[0].professor,'Nome revisado');
  }finally{await db.close();}
 });
+
+test('publicação revisada preserva correções e expõe somente vínculos correspondentes',async()=>{
+ const db=new PGlite();try{
+  await db.exec('CREATE ROLE anon; CREATE ROLE authenticated;');
+  await db.exec(await fs.readFile('docs/sql/002_professores_ensino_fundamental.sql','utf8'));
+  await db.exec("UPDATE escola_professor_disciplinas SET disciplina='Disciplina corrigida' WHERE codigo='fundamental-miria-matematica'");
+  const sql=await fs.readFile('docs/sql/004_publicar_professores_revisados.sql','utf8');
+  await db.exec(sql);await db.exec(sql);
+  await db.exec('SET ROLE anon');
+  assert.equal((await db.query('SELECT count(*)::int AS n FROM escola_professor_disciplinas')).rows[0].n,28);
+  assert.equal((await db.query("SELECT count(*)::int AS n FROM escola_professor_disciplinas WHERE disciplina='Educação Financeira'")).rows[0].n,1);
+  await db.exec('RESET ROLE');
+  assert.equal((await db.query("SELECT disciplina,publicado FROM escola_professor_disciplinas WHERE codigo='fundamental-miria-matematica'")).rows[0].publicado,false);
+ }finally{await db.close();}
+});

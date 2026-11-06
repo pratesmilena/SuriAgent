@@ -439,3 +439,7 @@ FodyWeavers.xsd
 
 # Bundle gerado pelo componente Spell UI
 public/generated/
+
+# Saída de publicação e cache do Netlify
+/dist/
+/.netlify/

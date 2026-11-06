@@ -4,7 +4,7 @@ Assistente estudantil da Escola Estadual República do Suriname. Interface respo
 
 ## Estado da validação
 
-Os 58 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
+Os 62 testes locais passaram. Foram verificadas 55 consultas reais no Supabase: 11 turmas × cinco dias, com sete aulas por combinação (385 aulas). A interface foi testada com dados reais de segunda e terça, semana completa e chat por apelido da turma. As consultas usam somente os registros existentes na tabela de horários da tarde, sem criar aulas ou alterar o banco.
 
 A aba Horários carrega automaticamente as turmas de `GET /api/horarios/catalogo`. Os dias sem registros visíveis para a turma ficam indisponíveis. `dia=SEMANA` consulta segunda a sexta e ordena por dia e número da aula; o chat aceita “Quais são as aulas do 3C de segunda a sexta?” e “Quais são as turmas?”. Apelidos são aceitos apenas quando identificam uma única turma cadastrada; o curso nunca é adivinhado em casos ambíguos. O catálogo usa paginação e informa falha em vez de truncar silenciosamente uma lista acima de seu limite de 10 mil linhas.
 
@@ -109,3 +109,9 @@ O agente agora consulta história, cursos, projetos, ambiente, eventos, espaços
 `escola_conteudos` reúne seis categorias com título, texto, fonte, data de verificação e publicação. `escola_eventos` acrescenta datas, local e público-alvo. Rascunhos não ficam visíveis ao site; usuários anon/authenticated podem apenas ler registros publicados. História e ofertas de cursos não foram inferidas a partir de dados parciais. As tabelas existentes são preservadas e as perguntas escolares não são enviadas a um modelo para completar fatos ausentes.
 
 Veja [a auditoria dos oito tópicos e o guia de preenchimento](docs/BASE_ESCOLAR_CONTEUDOS.md). Há modelos CSV em docs/dados. Depois do cadastro, use `npm run check:contents` para verificar os sete tópicos novos e `npm run check:school` para horários/localização. Os testes incluem execução repetida do SQL em PostgreSQL local via PGlite, isolamento dos rascunhos e recusa de escrita pelos papéis do site.
+
+## Publicação no Netlify
+
+O repositório inclui netlify.toml, build estático e Function Express. Use `npm run build:netlify`, publique `dist` e mantenha as Functions em `netlify/functions`. O site deve ser importado pelo GitHub para compilar o Plasma e empacotar a API. Cadastre as variáveis Supabase e a chave do serviço de IA nas configurações da hospedagem, com escopo de execução das Functions.
+
+Horários, endereço e os conteúdos publicados usam o Supabase. Templates de código continuam locais em SQLite e ficam indisponíveis na Function até uma migração para armazenamento persistente. O login Google requer o domínio público autorizado no Supabase. Veja [o passo a passo de publicação](docs/PUBLICAR_NETLIFY.md). Nenhum deploy na conta Netlify é criado só por enviar esse código ao GitHub.

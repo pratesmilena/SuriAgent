@@ -63,6 +63,6 @@ VALUES
     ('fundamental-olimpia-redacao','Olimpia','Redação','ENSINO_FUNDAMENTAL','Relação informada pela responsável pelo projeto',false,false,NULL),
     ('fundamental-ale-portugues','Ale','Português','ENSINO_FUNDAMENTAL','Relação informada pela responsável pelo projeto',false,false,NULL),
     ('fundamental-ale-redacao','Ale','Redação','ENSINO_FUNDAMENTAL','Relação informada pela responsável pelo projeto',false,false,NULL),
-    ('fundamental-marcelo-efin','Marcelo','Efin (?)','ENSINO_FUNDAMENTAL','Relação informada pela responsável pelo projeto',false,false,'Disciplina informada como Efin (?); confirmar nome completo.')
+    ('fundamental-marcelo-efin','Marcelo','Educação Financeira','ENSINO_FUNDAMENTAL','Relação informada pela responsável pelo projeto',false,false,NULL)
 ON CONFLICT (codigo) DO NOTHING;
 COMMIT;

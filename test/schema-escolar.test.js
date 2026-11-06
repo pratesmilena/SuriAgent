@@ -26,7 +26,10 @@ test('cadastro docente importa 17 professores/29 vínculos como rascunho e prese
   const sql=await fs.readFile('docs/sql/002_professores_ensino_fundamental.sql','utf8');await db.exec(sql);await db.exec(sql);
   const counts=(await db.query('SELECT count(*)::int AS vinculos,count(DISTINCT professor)::int AS professores FROM escola_professor_disciplinas')).rows[0];assert.deepEqual(counts,{vinculos:29,professores:17});
   await db.exec('SET ROLE anon');assert.equal((await db.query('SELECT professor FROM escola_professor_disciplinas')).rows.length,0);await assert.rejects(db.exec("UPDATE escola_professor_disciplinas SET publicado=true"));await db.exec('RESET ROLE');
-  await assert.rejects(db.exec("UPDATE escola_professor_disciplinas SET publicado=true,confirmado=true,verificado_em=CURRENT_DATE WHERE professor='Marcelo'"));
+  await assert.rejects(db.exec("UPDATE escola_professor_disciplinas SET publicado=true WHERE professor='Marcelo'"));
+  await db.exec("UPDATE escola_professor_disciplinas SET disciplina='Efin (?)',observacao='Disciplina informada como Efin (?); confirmar nome completo.' WHERE codigo='fundamental-marcelo-efin'");
+  const correcao=await fs.readFile('docs/sql/003_corrigir_disciplina_marcelo.sql','utf8');await db.exec(correcao);await db.exec(correcao);
+  const marcelo=(await db.query("SELECT disciplina,observacao,publicado FROM escola_professor_disciplinas WHERE codigo='fundamental-marcelo-efin'")).rows[0];assert.deepEqual(marcelo,{disciplina:'Educação Financeira',observacao:null,publicado:false});
   await db.exec("UPDATE escola_professor_disciplinas SET confirmado=true,verificado_em=CURRENT_DATE,publicado=true WHERE codigo='fundamental-miria-matematica'");
   await db.exec('SET ROLE anon');const rows=(await db.query('SELECT professor,disciplina FROM escola_professor_disciplinas')).rows;assert.equal(rows.length,1);assert.equal(rows[0].professor,'Miria');await db.exec('RESET ROLE');
   await db.exec("UPDATE escola_professor_disciplinas SET professor='Nome revisado' WHERE codigo='fundamental-miria-matematica'");await db.exec(sql);assert.equal((await db.query("SELECT professor FROM escola_professor_disciplinas WHERE codigo='fundamental-miria-matematica'")).rows[0].professor,'Nome revisado');

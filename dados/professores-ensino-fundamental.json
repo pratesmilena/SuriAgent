@@ -282,11 +282,11 @@
   {
     "codigo": "fundamental-marcelo-efin",
     "professor": "Marcelo",
-    "disciplina": "Efin (?)",
+    "disciplina": "Educação Financeira",
     "etapa": "ENSINO_FUNDAMENTAL",
     "fonte": "Relação informada pela responsável pelo projeto",
     "confirmado": false,
     "publicado": false,
-    "observacao": "Disciplina informada como Efin (?); confirmar nome completo."
+    "observacao": null
   }
 ]

@@ -44,7 +44,7 @@ Usar o SQL com INSERT ou o CSV; não importar ambos sem conferir os códigos ún
 | Tiago | Matemática; Orientação de Estudos de Matemática |
 | Olimpia | Redação |
 | Ale | Português; Redação |
-| Marcelo | Efin (?) — nome completo da disciplina ainda não confirmado |
+| Marcelo | Educação Financeira — esclarecimento fornecido pela responsável |
 
 ## Como adicionar no Supabase
 
@@ -52,7 +52,7 @@ Usar o SQL com INSERT ou o CSV; não importar ambos sem conferir os códigos ún
 2. Colar o arquivo completo 002_professores_ensino_fundamental.sql e executar como administrador. O assistente não o executou no banco remoto.
 3. Abrir a nova tabela no Table Editor e revisar nomes, disciplinas, etapa e fonte.
 4. Para cada vínculo efetivamente confirmado pela escola, preencher verificado_em com a data real da revisão, marcar confirmado=true e publicado=true. Só linhas confirmadas e publicadas ficam visíveis ao site.
-5. Marcelo fica com observacao preenchida e sem publicação. Confirmar o significado de Efin (?), corrigir disciplina e só então remover a observação pendente, revisar a data e publicar. O banco recusa publicação com observação pendente.
+5. A disciplina de Marcelo foi esclarecida como Educação Financeira. Se a versão antiga já foi importada com Efin (?), execute docs/sql/003_corrigir_disciplina_marcelo.sql. O código fundamental-marcelo-efin foi preservado para evitar duplicações. A correção não publica o registro; a revisão segue o mesmo processo dos demais vínculos.
 
 O site não recebe permissões de escrita. Não são cadastrados e-mails, telefones ou dados pessoais de estudantes nesse diretório. O login Google não concede edição da tabela. Os nomes não foram inferidos a partir da grade existente nem publicados automaticamente.
 

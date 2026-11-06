@@ -45,6 +45,15 @@ async function consultarConteudos(topico, pergunta = '', source = getSupabase(),
         if (['PGRST205','42P01'].includes(error.code)) return { topico, status: 'tabela_pendente', registros: [], total: 0 };
         throw error;
     }
+    if (eventos) {
+        const { data: gerais, error: erroGerais, count: totalGerais } = await source.from('escola_conteudos')
+            .select('id,categoria,slug,titulo,conteudo,fonte,verificado_em', { count: 'exact' })
+            .eq('publicado', true).eq('categoria', 'eventos').order('titulo').limit(20)
+            .abortSignal(AbortSignal.timeout(10000));
+        if (erroGerais && !['PGRST205','42P01'].includes(erroGerais.code)) throw erroGerais;
+        const registros = [...data, ...(gerais || []).map(row => ({ ...row, informacao_geral: true }))];
+        return { topico, status: registros.length ? 'disponivel' : 'sem_conteudo_publicado', registros, total: (count ?? data.length) + (totalGerais ?? gerais?.length ?? 0) };
+    }
     return { topico, status: data.length ? 'disponivel' : 'sem_conteudo_publicado', registros: data, total: count ?? data.length };
 }
 function formatarConteudos(resultado) {
@@ -54,7 +63,7 @@ function formatarConteudos(resultado) {
     if (!resultado.registros.length) return `${titulo}: não encontrei informação publicada para esta consulta. Confirme com a secretaria. Não vou completar essa informação por suposição.${avisos}`;
     const blocos = resultado.registros.map(row => {
         let extra = '';
-        if (resultado.topico === 'eventos') {
+        if (resultado.topico === 'eventos' && !row.informacao_geral) {
             const inicio = new Date(row.inicio);
             const data = Number.isNaN(inicio.getTime()) ? 'data não informada' : inicio.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
             extra = `\nQuando: ${data}${row.local ? '\nLocal: ' + row.local : ''}${row.publico_alvo ? '\nPúblico: ' + row.publico_alvo : ''}`;

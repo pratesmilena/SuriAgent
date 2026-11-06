@@ -66,3 +66,18 @@ test('Ale pode ser pesquisada também como Alessandra sem duplicar vínculos',as
   }
  }finally{await db.close();}
 });
+
+test('informações recebidas são publicadas por índice sem duplicar nem substituir conteúdo',async()=>{
+ const db=new PGlite();try{
+  await db.exec('CREATE ROLE anon; CREATE ROLE authenticated;');
+  await db.exec(await fs.readFile('docs/sql/001_conteudos_escolares.sql','utf8'));
+  const sql=await fs.readFile('docs/sql/006_informacoes_escola.sql','utf8');
+  await db.exec(sql);
+  await db.exec("UPDATE escola_conteudos SET conteudo='Correção preservada' WHERE slug='historia-republica-suriname'");
+  await db.exec(sql);await db.exec('SET ROLE anon');
+  const rows=(await db.query('SELECT categoria,conteudo FROM escola_conteudos')).rows;
+  assert.equal(rows.length,8);assert.equal(rows.find(r=>r.categoria==='historia').conteudo,'Correção preservada');
+  assert.equal((await db.query('SELECT count(*)::int AS n FROM escola_eventos')).rows[0].n,0);
+  assert.ok(rows.some(r=>r.conteudo.includes('21h15')));assert.ok(rows.some(r=>r.categoria==='eventos'));
+ }finally{await db.close();}
+});

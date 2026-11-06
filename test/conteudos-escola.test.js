@@ -14,7 +14,7 @@ test('FAQ aplica busca textual com termos controlados',async t=>{
  const db=await rest(t,(req,res)=>{assert.match(req.query.busca,/matricula/);assert.match(req.query.busca,/wfts/);res.json([]);});const result=await consultarConteudos('faq','O que preciso para matrícula?',db);assert.equal(result.status,'sem_conteudo_publicado');assert.match(formatarConteudos(result),/Não vou completar/);
 });
 test('eventos atuais filtram datas e histórico omite esse filtro',async t=>{
- let calls=0;const db=await rest(t,(req,res)=>{calls++;assert.equal(req.params.table,'escola_eventos');assert.equal(req.query.publicado,'eq.true');if(calls===1)assert.match(req.query.or,/2026-11-05/);else assert.equal(req.query.or,undefined);res.json([]);});
+ let calls=0;const db=await rest(t,(req,res)=>{if(req.params.table==='escola_conteudos'){assert.equal(req.query.categoria,'eq.eventos');return res.json([]);}calls++;assert.equal(req.params.table,'escola_eventos');assert.equal(req.query.publicado,'eq.true');if(calls===1)assert.match(req.query.or,/2026-11-05/);else assert.equal(req.query.or,undefined);res.json([]);});
  await consultarConteudos('eventos','Próximos eventos',db,new Date('2026-11-05T12:00:00Z'));await consultarConteudos('eventos','Eventos realizados',db);assert.equal(calls,2);
 });
 test('tabela ausente é distinta de conteúdo vazio e recusa de leitura',async t=>{
@@ -29,4 +29,11 @@ test('o chat usa a base para os tópicos novos, sem depender da IA',async()=>{
 });
 test('cadastro de eventos apresenta data no fuso de São Paulo',()=>{
  const text=formatarConteudos({topico:'eventos',status:'disponivel',total:1,registros:[{titulo:'Evento de teste',conteudo:'Teste',inicio:'2026-11-05T15:00:00Z',local:'Local de teste',fonte:'Teste'}]});assert.match(text,/12:00/);assert.match(text,/05\/11\/2026/);
+});
+
+test('eventos gerais aparecem sem inventar uma data para o calendário',async t=>{
+ const db=await rest(t,(req,res)=>res.json(req.params.table==='escola_eventos'?[]:[{titulo:'Eventos da escola',conteudo:'Festa Junina; datas não informadas.',fonte:'Responsável'}]));
+ const result=await consultarConteudos('eventos','Quais eventos?',db);
+ assert.equal(result.registros.length,1);assert.match(formatarConteudos(result),/Festa Junina/);
+ assert.doesNotMatch(formatarConteudos(result),/Quando:|1970/);
 });

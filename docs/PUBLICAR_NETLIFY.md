@@ -101,3 +101,11 @@ Se algum campo for false, abrir `https://app.netlify.com/projects/suriagent/conf
 Em `https://app.netlify.com/projects/suriagent/deploys`, iniciar Trigger deploy → Deploy project (ou equivalente) e aguardar o deploy de produção ficar Published. Um build de preview ou deploy que falhou não atualiza necessariamente o domínio de produção. Variáveis salvas no Codex ou em .env local não são automaticamente transferidas ao Netlify.
 
 Repetir /api/status e /api/horarios/catalogo. Só após a configuração pública ficar válida testar o Google. A habilitação remota do provedor não substitui configurar o domínio https://suriagent.netlify.app em Site URL e Redirect URLs no Supabase. A conclusão do consentimento e retorno OAuth ainda depende de teste real com a conta da responsável.
+
+### Resultado após o novo deploy
+
+O diagnóstico público passou a informar URL configurada/válida, chave configurada e configuração pública de login válida. Os endpoints publicados retornaram HTTP 200: catálogo com 11 turmas e consulta do 3ºC (DS) em SEXTA com sete aulas. O serviço remoto informou Google habilitado. O carregamento no navegador da publicação foi confirmado.
+
+Ao testar o botão Google, a navegação chegou ao Google e exibiu **Error 400: redirect_uri_mismatch**. O redirect_uri observado foi exatamente `https://tjqcltzfqqeveztdumsb.supabase.co/auth/v1/callback`. Esse endereço precisa ser cadastrado nas URIs de redirecionamento autorizados do mesmo cliente OAuth Web cujo Client ID está configurado em Supabase → Authentication → Google. Colocar o endereço somente no campo de origens JavaScript não corrige o mismatch. Salvar no Google Cloud e aguardar a propagação antes de testar novamente.
+
+No Supabase, manter Site URL `https://suriagent.netlify.app` e o retorno do site autorizado em Redirect URLs. O callback Google é o endereço Supabase acima. Não há motivo para alterar novamente GRANT/RLS ou criar outra chave publishable para corrigir esse erro OAuth. A autorização com uma conta Google e a configuração administrativa do cliente não foram realizadas pelo assistente.

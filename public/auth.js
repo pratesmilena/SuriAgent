@@ -5,25 +5,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const accountOpen = document.getElementById('account-open');
     const signedOut = document.getElementById('signed-out-view');
     const signedIn = document.getElementById('signed-in-view');
-    const logout = document.getElementById('logout');
+    const signOutButtons = [...document.querySelectorAll('[data-sign-out]')];
+    const logoutErrors = [document.getElementById('logout-error'), document.getElementById('profile-logout-error')];
     let client;
     let signingIn = false;
+    let googleAvailable = false;
+    let verificationId = 0;
     function render(user) {
+        const metadata = user?.user_metadata || {};
+        const candidate = [metadata.full_name, metadata.name, user?.email?.split('@')[0]].find(value => typeof value === 'string' && value.trim());
+        const name = candidate?.trim().slice(0, 120) || 'estudante';
+        const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => Array.from(word)[0]).join('').toLocaleUpperCase('pt-BR');
         signedOut.hidden = !!user;
         signedIn.hidden = !user;
-        accountStatus.textContent = user ? 'Conectado' : 'Visitante';
-        accountOpen.textContent = user ? 'Minha conta' : 'Entrar →';
-        document.getElementById('account-name').textContent = user?.user_metadata?.full_name || user?.email || 'estudante';
+        accountStatus.textContent = user ? 'Perfil conectado' : 'Visitante';
+        accountOpen.textContent = user ? 'Meu perfil' : 'Entrar →';
+        document.getElementById('account-name').textContent = user ? name : '';
+        document.getElementById('account-email').textContent = user && typeof user.email === 'string' ? user.email : '';
+        document.getElementById('profile-summary').hidden = !user;
+        document.getElementById('profile-welcome').textContent = user ? `Bem-vindo(a), ${name}!` : '';
+        document.getElementById('profile-avatar').textContent = user ? initials : '';
+        document.getElementById('sidebar-profile-name').textContent = user ? name : 'Aprenda do seu jeito';
+        document.getElementById('sidebar-profile-note').textContent = user ? 'Você está no seu perfil.' : 'Com sua conta ou como visitante.';
+        document.getElementById('sidebar-profile-open').textContent = user ? 'Meu perfil' : 'Minha conta';
+        document.getElementById('account-title').hidden = !!user;
+        document.getElementById('profile-dialog-title').hidden = !user;
+        document.getElementById('account-modal').setAttribute('aria-labelledby', user ? 'profile-dialog-title' : 'account-title');
+        document.getElementById('account-description').textContent = user ? 'Esta é a sua conta conectada ao SuriAgent.' : 'Entre com sua conta ou continue explorando como visitante.';
+        document.getElementById('visitor-divider').hidden = !!user;
+        document.getElementById('continue-visitor').hidden = !!user;
+        logoutErrors.forEach(element => { element.hidden = true; element.textContent = ''; });
+        if (!user) { signingIn = false; google.disabled = !googleAvailable; }
     }
     async function verifySession() {
+        const current = ++verificationId;
         try {
             const { data: { session }, error } = await client.auth.getSession();
+            if (current !== verificationId) return;
             if (error) throw error;
             if (!session) { render(null); return; }
             const { data: { user }, error: userError } = await client.auth.getUser();
+            if (current !== verificationId) return;
             if (userError) throw userError;
             render(user);
         } catch {
+            if (current !== verificationId) return;
             render(null);
             status.textContent = 'Não foi possível confirmar sua sessão. Você pode continuar como visitante e tentar entrar novamente.';
         }
@@ -39,21 +65,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) throw error;
         } catch {
             status.textContent = 'Não foi possível iniciar o login Google. Continue como visitante ou tente novamente mais tarde.';
-            google.disabled = false; signingIn = false;
+            google.disabled = !googleAvailable; signingIn = false;
         }
     });
-    logout.addEventListener('click', async () => {
-        logout.disabled = true;
+    async function signOut() {
+        if (!client || signOutButtons.some(button => button.disabled)) return;
+        ++verificationId;
+        signOutButtons.forEach(button => { button.disabled = true; });
+        logoutErrors.forEach(element => { element.hidden = true; });
         try {
             const { error } = await client.auth.signOut({ scope: 'local' });
             if (error) throw error;
+            ++verificationId;
             render(null);
-            status.textContent = 'Você saiu da conta neste dispositivo. Continue como visitante quando quiser.';
+            status.textContent = 'Você saiu do perfil neste dispositivo. Continue como visitante quando quiser.';
         } catch {
-            // O erro também precisa ficar visível na área autenticada.
-            document.getElementById('account-name').textContent = 'Não foi possível sair. Tente novamente.';
-        } finally { logout.disabled = false; }
-    });
+            logoutErrors.forEach(element => {
+                element.textContent = 'Não foi possível sair do perfil. Tente novamente.';
+                element.hidden = false;
+            });
+        } finally { signOutButtons.forEach(button => { button.disabled = false; }); }
+    }
+    signOutButtons.forEach(button => button.addEventListener('click', signOut));
     fetch('/api/auth/config', { signal: AbortSignal.timeout(15000) }).then(async response => {
         if (!response.ok) throw new Error();
         const config = await response.json();
@@ -61,11 +94,12 @@ document.addEventListener('DOMContentLoaded', () => {
         client = window.supabase.createClient(config.url, config.publishableKey, {
             auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
         });
-        google.disabled = config.googleEnabled === false;
+        googleAvailable = config.googleEnabled !== false;
+        google.disabled = !googleAvailable;
         status.textContent = config.googleEnabled === false
             ? 'O login Google ainda não foi habilitado pela equipe do site. Continue como visitante.'
             : 'Ao continuar, você será direcionado ao Google para autorizar o acesso à sua conta.';
-        client.auth.onAuthStateChange(() => { setTimeout(verifySession, 0); });
+        client.auth.onAuthStateChange(() => { ++verificationId; setTimeout(verifySession, 0); });
         await verifySession();
         const query = new URLSearchParams(location.search);
         if (query.has('error') || location.hash.includes('error=')) {

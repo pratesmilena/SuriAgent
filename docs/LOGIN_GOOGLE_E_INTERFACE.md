@@ -34,3 +34,11 @@ A consulta real a `/auth/v1/settings` confirmou `external.google=false`. O aplic
 ## Validação
 
 49 testes automatizados locais passaram, incluindo as verificações de chave pública, rejeição de credenciais administrativas, detecção do provedor Google e falha do serviço. No Chromium, foram verificados Plasma em WebGL, modo de movimento reduzido, menu desktop/móvel, atalhos de navegação, Escape, consulta de aulas reais sem login e o aviso real de Google desabilitado. O fluxo de login, verificação de sessão e logout foi exercitado com SDK simulado; não houve autenticação real com uma conta Google. A confirmação ponta a ponta do OAuth depende da configuração administrativa acima e do próprio usuário autorizar sua conta.
+
+## Boas-vindas e perfil conectado
+
+Após confirmar a sessão com getUser, o site mostra o nome recebido do Google/Supabase, iniciais, uma mensagem de boas-vindas e indicação de perfil conectado. O cabeçalho e o menu lateral abrem Meu perfil, que exibe nome, e-mail da própria conta e Sair do perfil. Há também um botão de saída no destaque de boas-vindas, acessível no computador e no celular.
+
+A ação de sair usa signOut com escopo local: encerra o perfil neste dispositivo e restaura o modo visitante, sem sair da conta Google em outros serviços. A restauração da sessão ao recarregar usa novamente o serviço Auth para confirmar o usuário. Falhas de saída mostram um aviso separado e não substituem o nome da conta por uma mensagem de erro. Dados de nome e e-mail são inseridos como texto, sem interpretar HTML; ao sair, são removidos da interface. Não foram criadas tabelas novas nem armazenamento público de perfis.
+
+A validação visual de sessão restaurada, nome, boas-vindas, modal, falha de logout, nova entrada e saída foi feita com SDK/sessão simulados no Chromium; o assistente não entrou na conta Google da responsável. O modo visitante e as consultas públicas permanecem disponíveis.

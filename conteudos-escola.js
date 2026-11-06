@@ -6,13 +6,13 @@ function identificarTopicos(pergunta) {
     const texto = normalizar(pergunta);
     const regras = {
         professores: /\b(?:professor|professora|professores|professoras|prof|profs|docente|docentes|leciona|lecionam|ensina|ensinam|ministra|ministram)\b|quem da aula/,
-        historia: /historia (?:da |desta |de nossa )?escola|fundacao da escola|quando.{0,30}(?:fundada|inaugurada|criada)|quem fundou|historia.{0,25}suriname/,
-        cursos: /cursos oferecidos|(?:que|quais).{0,20}cursos|cursos.{0,35}(?:escola|oferec|disponiveis)|ensino (?:medio|fundamental)|curso tecnico/,
-        projetos: /quais.{0,20}projetos|projetos desenvolvidos|projetos.{0,25}escola/,
-        ambiente: /ambiente escolar|infraestrutura|estrutura da escola|convivencia|seguranca da escola/,
-        eventos: /\beventos\b|proximo evento|calendario escolar|agenda da escola|feira cultural|festa junina/,
-        espacos: /\bespacos\b|laboratorios?\b|\bquadra\b|\bauditorio\b|acessibilidade|(?:tem|possui|ha).{0,20}biblioteca|biblioteca.{0,20}escola/,
-        faq: /perguntas frequentes|duvidas frequentes|\bfaq\b|matricula|documentos.{0,20}(?:escola|levar|preciso)|uniforme|merenda|cantina|transferencia escolar|\binep\b|(?:horario|contato|telefone).{0,25}(?:secretaria|direcao|escola)/
+        historia: /historia (?:da |desta |de nossa )?escola|fundacao da escola|quando.{0,30}(?:fundada|inaugurada|criada)|quem fundou|historia.{0,25}suriname|origem da escola|trajetoria da escola|por que.{0,25}(?:suriname|ina)|conhecida.{0,20}ina|apelido da escola/,
+        cursos: /cursos oferecidos|(?:que|quais).{0,20}cursos|cursos.{0,35}(?:escola|oferec|disponiveis)|ensino (?:medio|fundamental)|curso tecnico|itinerarios? formativos?|linguagens.{0,10}humanas|exatas.{0,10}natureza|(?:curso|tecnico|formacao).{0,25}desenvolvimento de sistemas|(?:quais|que).{0,20}(?:turnos|etapas de ensino)|(?:turnos|series|anos).{0,25}(?:oferec|escola|disponiveis)/,
+        projetos: /quais.{0,20}projetos|projetos desenvolvidos|projetos.{0,25}escola|projeto politico.pedagogico|\bppp\b|projetos? de leitura|reforco escolar|olimpiadas.{0,25}escola|acoes.{0,25}comunidade/,
+        ambiente: /ambiente escolar|infraestrutura|estrutura da escola|convivencia|seguranca da escola|rotina.{0,25}escola|entrada e saida|movimento.{0,25}escola|perfil comunitario|convivio.{0,25}escola/,
+        eventos: /\beventos\b|proximo evento|calendario escolar|agenda da escola|feiras? (?:e mostras )?culturais?|mostras? culturais?|festa junina|show de talentos|interclasse|gincana|volta as aulas|reuniao de pais|datas? (?:das? |de )?(?:provas|recuperacao)/,
+        espacos: /\bespacos\b|laboratorios?\b|\bquadra\b|\bauditorio\b|acessibilidade|(?:tem|possui|ha).{0,20}biblioteca|biblioteca.{0,20}escola|sala de (?:leitura|informatica)|\bpatio\b|refeitorio|cozinha.{0,20}escola|salas? de (?:aula|direcao|coordenacao)/,
+        faq: /perguntas frequentes|duvidas frequentes|\bfaq\b|matricula|documentos.{0,20}(?:escola|levar|preciso)|uniforme|merenda|cantina|transferencia escolar|\binep\b|(?:horario|contato|telefone).{0,25}(?:secretaria|direcao|escola)|(?:que horas|quando).{0,25}escola.{0,15}(?:abre|fecha|funciona)|funcionamento.{0,20}escola|rede de ensino|diretoria de ensino|seduc/
     };
     return Object.keys(regras).filter(topico => regras[topico].test(texto) || new RegExp(`^${topico}[?.! ]*$`).test(texto));
 }

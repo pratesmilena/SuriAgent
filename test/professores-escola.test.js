@@ -48,3 +48,9 @@ test('não atribui manhã nem etapa à grade da tarde por suposição',async t=>
   const result=await consultarProfessores(pergunta,db);assert.equal(result.total,0);assert.ok(result.avisos.length);
  }
 });
+
+test('nome alternativo Alessandra encontra Ale nos horários',async t=>{
+ const db=await bancoDeTeste(t,[],[{professor:'Ale',disciplina:'Português',turma:'6A'}]);
+ const result=await consultarProfessores('Quais disciplinas a professora Alessandra leciona?',db);
+ assert.equal(result.total,1);assert.equal(result.registros[0].professor,'Ale');
+});

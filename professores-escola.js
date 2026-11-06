@@ -56,7 +56,9 @@ async function consultarProfessores(pergunta = '', source = getSupabase()) {
     if (grade.status === 'fulfilled') {
         for (const row of grade.value) {
             if (!row.professor?.trim() || !row.disciplina?.trim()) continue;
-            const palavras = normalizar(row.professor + ' ' + row.disciplina).split(/[^a-z0-9]+/);
+            const nome = normalizar(row.professor).trim();
+            const alternativas = ['ale', 'alessandra'].includes(nome) ? ' ale alessandra' : '';
+            const palavras = normalizar(row.professor + alternativas + ' ' + row.disciplina).split(/[^a-z0-9]+/);
             if (!busca.every(termo => palavras.includes(termo))) continue;
             const item = registro(row);
             let origem = item.origens.find(o => o.tipo === 'horarios');

@@ -77,3 +77,7 @@ Os testes executam o SQL em PostgreSQL local (PGlite), conferem os 29 vínculos/
 Depois de revisar a lista acima, executar `docs/sql/004_publicar_professores_revisados.sql` no SQL Editor do Supabase. O script publica apenas os 29 vínculos originais que correspondam exatamente a código, professor e disciplina, sem observação pendente. Não altera vínculos já publicados ou corrigidos. Para Marcelo importado como Efin (?), aplicar o script 003 antes. A publicação pode retornar menos de 29 linhas se algumas já estiverem publicadas ou tiverem sido editadas; conferir o Table Editor.
 
 Exemplos de perguntas: “Quais matérias a professora Miria leciona?”, “Quem ensina Matemática?”, “Quais disciplinas cada professor leciona na tarde?”. Siglas de disciplinas da grade são mantidas como cadastradas, sem expandir significados por suposição. Os scripts não foram executados remotamente pelo assistente.
+
+## Nome alternativo da professora Ale
+
+Executar `docs/sql/005_apelido_professora_ale.sql` no SQL Editor. Acrescenta `nomes_alternativos`, registra Alessandra nos vínculos de Ale do Fundamental e inclui os nomes alternativos na busca. Preserva nome, disciplinas e estado de publicação. Pode executar novamente sem duplicar o apelido. Assim, “Quais disciplinas a professora Alessandra leciona?” encontra os mesmos vínculos publicados de Ale. O agente também reconhece os dois nomes na pesquisa dos horários da tarde.

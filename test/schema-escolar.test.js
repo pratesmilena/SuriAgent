@@ -50,3 +50,19 @@ test('publicação revisada preserva correções e expõe somente vínculos corr
   assert.equal((await db.query("SELECT disciplina,publicado FROM escola_professor_disciplinas WHERE codigo='fundamental-miria-matematica'")).rows[0].publicado,false);
  }finally{await db.close();}
 });
+
+test('Ale pode ser pesquisada também como Alessandra sem duplicar vínculos',async()=>{
+ const db=new PGlite();try{
+  await db.exec('CREATE ROLE anon; CREATE ROLE authenticated;');
+  await db.exec(await fs.readFile('docs/sql/002_professores_ensino_fundamental.sql','utf8'));
+  const sql=await fs.readFile('docs/sql/005_apelido_professora_ale.sql','utf8');
+  await db.exec(sql);await db.exec(sql);
+  await db.exec(await fs.readFile('docs/sql/004_publicar_professores_revisados.sql','utf8'));
+  await db.exec('SET ROLE anon');
+  for(const nome of ['Ale','Alessandra']) {
+   const rows=(await db.query("SELECT professor,disciplina,nomes_alternativos FROM escola_professor_disciplinas WHERE busca @@ plainto_tsquery('portuguese',$1)",[nome])).rows;
+   assert.equal(rows.length,2);assert.ok(rows.every(r=>r.professor==='Ale' && r.nomes_alternativos==='Alessandra'));
+   assert.deepEqual(rows.map(r=>r.disciplina).sort(),['Português','Redação']);
+  }
+ }finally{await db.close();}
+});

@@ -64,6 +64,7 @@ function formatarConteudos(resultado) {
     if (resultado.status === 'tabela_pendente') return `${titulo}: esta parte da base escolar ainda está sendo preparada. Não há informação oficial disponível para responder agora.`;
     const avisos = resultado.avisos?.length ? '\n\n' + resultado.avisos.join('\n') : '';
     if (!resultado.registros.length) return `${titulo}: não encontrei informação publicada para esta consulta. Confirme com a secretaria. Não vou completar essa informação por suposição.${avisos}`;
+    if (resultado.resposta_sucinta) return `${titulo}\n\n${resultado.registros[0].conteudo}\n\nFonte: ${resultado.registros[0].fonte}`;
     const blocos = resultado.registros.map(row => {
         let extra = '';
         if (resultado.topico === 'eventos' && !row.informacao_geral) {

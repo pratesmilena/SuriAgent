@@ -25,3 +25,14 @@ test('FAQ filtra a pergunta e não inventa registros bloqueados por RLS',async t
  const limitado=await banco(t,[{id:4,categoria:'Contato e Endereço',titulo:'Contato',conteudo:'Telefone'}]);
  assert.equal((await consultarConteudos('cursos','',limitado)).registros.length,0);
 });
+
+test('resposta de cursos é sucinta e inclui os itinerários informados sem censo e horários',async t=>{
+ const db=await banco(t,[{id:1,categoria:'Informações Gerais',conteudo:'649 matrículas'}, {id:3,categoria:'Informações Gerais',conteudo:'400 matrículas'}, {id:9,categoria:'FAQ',conteudo:'Ensino Fundamental e Médio'}, {id:13,categoria:'Grade Horária',conteudo:'Dois turnos às 07:00'}]);
+ const result=await consultarConteudos('cursos','Quais cursos a escola oferece?',db);
+ const texto=require('../conteudos-escola').formatarConteudos(result);
+ assert.equal(result.registros.length,1);
+ for(const trecho of ['6º ao 9º','1ª a 3ª','Linguagens / Humanas','Exatas / Natureza','Técnico em Desenvolvimento de Sistemas','2º ano'])assert.ok(texto.includes(trecho));
+ assert.doesNotMatch(texto,/matrículas|07:00|horarios_aulas|Resumo da Escola/);
+ assert.equal((texto.match(/Cursos oferecidos/g)||[]).length,1);
+ assert.match(texto,/responsável/);
+});

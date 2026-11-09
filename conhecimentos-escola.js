@@ -1,3 +1,4 @@
+const cursos = require('./config/cursos.json');
 const { getSupabase } = require('./supabase');
 const normalizar = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 // Mapeamento dos registros conferidos no arquivo enviado pela responsável.
@@ -11,6 +12,16 @@ async function consultarConhecimentos(topico, pergunta = '', source = getSupabas
         throw error;
     }
     let rows = data.filter(row => IDS[topico]?.includes(Number(row.id)) || normalizar(row.categoria) === topico);
+    if (topico === 'cursos') {
+        const turnos = /turnos?|periodos?/.test(normalizar(pergunta));
+        if (!turnos && rows.some(row => Number(row.id) === 9)) {
+            // A oferta detalhada foi fornecida pela responsável; não atribuí-la ao texto antigo do banco.
+            return { topico, status: 'disponivel', registros: [{ titulo: 'Cursos oferecidos',
+                conteudo: cursos.etapas.map(x => '• ' + x).join('\n') + '\n\nItinerários (' + cursos.inicioItinerarios.toLowerCase() + '):\n' + cursos.itinerarios.map(x => '• ' + x).join('\n'),
+                fonte: cursos.fonte }], total: 1, resposta_sucinta: true };
+        }
+        rows = rows.filter(row => normalizar(row.categoria) === 'cursos' || Number(row.id) === (turnos ? 13 : 9));
+    }
     if (topico === 'faq') {
         const texto = normalizar(pergunta);
         const regras = [

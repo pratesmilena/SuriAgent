@@ -34,13 +34,13 @@ test('une cadastro e grade sem duplicar vínculos ou perder as turmas e fontes',
  const result=await consultarProfessores('O que a Miria ensina?',db);
  assert.equal(result.total,1);assert.equal(result.registros[0].origens.length,2);
  assert.deepEqual(result.registros[0].origens[1].turmas,['6A','6B']);
- assert.match(formatarConteudos(result),/Cadastro revisado/);assert.match(formatarConteudos(result),/6A, 6B/);
+ assert.doesNotMatch(formatarConteudos(result),/Fonte:|Cadastro revisado/);assert.match(formatarConteudos(result),/6A, 6B/);
 });
 test('grade responde mesmo quando não há cadastro publicado',async t=>{
  const db=await bancoDeTeste(t,[],[{professor:'Jefferson',disciplina:'PB',turma:'3ºC (DS)'}]);
  const result=await consultarProfessores('Quais disciplinas o professor Jefferson leciona?',db);
  assert.equal(result.total,1);assert.equal(result.registros[0].disciplina,'PB');
- assert.match(formatarConteudos(result),/Horários da tarde/);
+ assert.match(formatarConteudos(result),/Período da tarde/);
 });
 test('não atribui manhã nem etapa à grade da tarde por suposição',async t=>{
  const db=await bancoDeTeste(t,[],[{professor:'Jefferson',disciplina:'PB',turma:'3ºC (DS)'}]);

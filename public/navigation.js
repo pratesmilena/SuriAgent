@@ -66,6 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!response.ok) throw new Error();
         const school = await response.json();
         document.getElementById('school-address').textContent = school.endereco || 'Confirme o endereço com a secretaria.';
-        document.getElementById('school-address-source').textContent = school.fonte ? `Fonte: ${school.fonte}` : '';
+        document.getElementById('school-address-source').textContent = '';
     }).catch(() => { document.getElementById('school-address').textContent = 'Não foi possível carregar o endereço. Tente novamente mais tarde ou consulte a secretaria.'; });
 });

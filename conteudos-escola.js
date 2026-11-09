@@ -64,7 +64,7 @@ function formatarConteudos(resultado) {
     if (resultado.status === 'tabela_pendente') return `${titulo}: esta parte da base escolar ainda está sendo preparada. Não há informação oficial disponível para responder agora.`;
     const avisos = resultado.avisos?.length ? '\n\n' + resultado.avisos.join('\n') : '';
     if (!resultado.registros.length) return `${titulo}: não encontrei informação publicada para esta consulta. Confirme com a secretaria. Não vou completar essa informação por suposição.${avisos}`;
-    if (resultado.resposta_sucinta) return `${titulo}\n\n${resultado.registros[0].conteudo}\n\nFonte: ${resultado.registros[0].fonte}`;
+    if (resultado.resposta_sucinta) return `${titulo}\n\n${resultado.registros[0].conteudo}`;
     const blocos = resultado.registros.map(row => {
         let extra = '';
         if (resultado.topico === 'eventos' && !row.informacao_geral) {
@@ -75,13 +75,13 @@ function formatarConteudos(resultado) {
         if (resultado.topico === 'professores') {
             if (row.origens) {
                 const fontes = row.origens.map(origem => origem.tipo === 'horarios'
-                    ? `Horários da tarde · turmas: ${origem.turmas.join(', ')}. Fonte: ${origem.fonte}.`
-                    : `Cadastro docente · ${origem.etapa.replace(/_/g, ' ')}. Fonte: ${origem.fonte}${origem.verificado_em ? '. Verificado em: ' + origem.verificado_em : ''}.`);
+                    ? `Período da tarde · turmas: ${origem.turmas.join(', ')}.`
+                    : `${origem.etapa.replace(/_/g, ' ')}.`);
                 return `${row.professor} — ${row.disciplina}\n${fontes.join('\n')}`;
             }
-            return `${row.professor} — ${row.disciplina} (${row.etapa.replace(/_/g, ' ')})\nFonte: ${row.fonte}\nVerificado em: ${row.verificado_em}`;
+            return `${row.professor} — ${row.disciplina} (${row.etapa.replace(/_/g, ' ')})`;
         }
-        return `${row.titulo}\n${row.conteudo}${extra}\nFonte: ${row.fonte || 'Cadastro publicado pela escola'}${row.verificado_em ? '\nVerificado em: ' + row.verificado_em : ''}`;
+        return `${row.titulo}\n${row.conteudo}${extra}`;
     });
     return `${titulo}\n\n${blocos.join('\n\n')}${resultado.total > resultado.registros.length ? `\n\nExibindo ${resultado.registros.length} de ${resultado.total} registros. Consulte a secretaria para mais informações.` : ''}${avisos}`;
 }

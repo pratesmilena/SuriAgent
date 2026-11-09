@@ -17,7 +17,7 @@ async function ask(t, pergunta, deps={}) {
 }
 
 test('pergunta de localização retorna endereço confirmado, sem fingir acesso ao banco', async t=>{
-    const r=await ask(t,'Onde fica a escola?');assert.equal(r.status,200);assert.match(r.body.solucao,/810/);assert.match(r.body.solucao,/Itaim Paulista/);assert.match(r.body.solucao,/ainda não foi validada/);assert.equal(r.body.origemLocalizacao,'configuracao-confirmada');
+    const r=await ask(t,'Onde fica a escola?');assert.equal(r.status,200);assert.match(r.body.solucao,/810/);assert.match(r.body.solucao,/Itaim Paulista/);assert.doesNotMatch(r.body.solucao,/Fonte:|ainda não foi validada/);assert.equal(r.body.origemLocalizacao,'configuracao-confirmada');
 });
 test('localização consultada distingue a fonte Supabase',async t=>{
     const r=await ask(t,'Qual é a localização da escola?',{localizar:async()=>({endereco:'Endereço do teste',fonte:'Tabela conhecimentos (simulada)',origem:'supabase-conhecimentos'})});assert.match(r.body.solucao,/Endereço do teste/);assert.equal(r.body.origemLocalizacao,'supabase-conhecimentos');assert.doesNotMatch(r.body.solucao,/ainda não foi validada/);

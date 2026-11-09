@@ -56,8 +56,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
                 // A informação confirmada pode ser usada, mas não afirmar que veio do banco.
             }
             origemLocalizacao = local.origem;
-            partes.push(`${local.nome}: ${local.endereco}\nFonte: ${local.fonte}`);
-            if (local.origem !== 'supabase-conhecimentos') partes.push('Este endereço foi confirmado na configuração do projeto. A leitura da tabela conhecimentos ainda não foi validada nesta consulta.');
+            partes.push(`${local.nome}: ${local.endereco}`);
         }
         for (const topico of topicos) {
             try { partes.push(formatarConteudos(await conteudos(topico, pergunta))); }
@@ -94,7 +93,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
                 if (!aulas.length) partes.push(`Não encontrei aulas acessíveis para ${turma} em ${dia}. Confira o nome completo da turma na aba Horários ou com a secretaria. Uma lista vazia também pode indicar restrição de acesso aos dados.`);
                 else {
                     const linhas = aulas.map(aula => `${dia === 'SEMANA' ? aula.dia_semana + ' · ' : ''}${aula.numero_aula ?? '?'}ª aula · ${aula.horario_inicio || 'horário não informado'} · ${aula.disciplina || 'disciplina não informada'} · ${aula.professor || 'professor(a) não informado(a)'}`);
-                    partes.push(`Aulas de ${turma} em ${dia === 'SEMANA' ? 'segunda a sexta-feira' : dia}:\n${linhas.join('\n')}\nFonte: horários cadastrados pela escola no Supabase.`);
+                    partes.push(`Aulas de ${turma} em ${dia === 'SEMANA' ? 'segunda a sexta-feira' : dia}:\n${linhas.join('\n')}`);
                 }
             }
         }

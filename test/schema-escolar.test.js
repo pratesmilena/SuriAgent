@@ -81,3 +81,19 @@ test('informações recebidas são publicadas por índice sem duplicar nem subst
   assert.ok(rows.some(r=>r.conteudo.includes('21h15')));assert.ok(rows.some(r=>r.categoria==='eventos'));
  }finally{await db.close();}
 });
+
+test('política de conhecimentos libera somente registros revisados para visitante e login',async()=>{
+ const db=new PGlite();try{
+  await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated;
+   CREATE TABLE conhecimentos(id bigint PRIMARY KEY,categoria text,titulo text,conteudo text,palavras_chave text);
+   INSERT INTO conhecimentos VALUES (4,'Contato','Endereço e Contatos','Público','contato'),(9,'FAQ','Quais etapas de ensino a REPÚBLICA DO SURINAME oferece?','Cursos','cursos'),(99,'Interno','Privado','Não publicar','');
+   ALTER TABLE conhecimentos ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY suri_leitura_endereco_publico ON conhecimentos FOR SELECT TO anon USING(id=4);`);
+  const sql=await fs.readFile('docs/sql/007_liberar_conhecimentos_revisados.sql','utf8');await db.exec(sql);await db.exec(sql);
+  for(const role of ['anon','authenticated']){
+   await db.exec(`SET ROLE ${role}`);
+   assert.deepEqual((await db.query('SELECT id FROM conhecimentos ORDER BY id')).rows.map(r=>Number(r.id)),[4,9]);
+   await assert.rejects(db.exec("UPDATE conhecimentos SET conteudo='indevido'"));await db.exec('RESET ROLE');
+  }
+ }finally{await db.close();}
+});

@@ -1,4 +1,5 @@
 const { getSupabase } = require('./supabase');
+const { consultarConhecimentos } = require('./conhecimentos-escola');
 const { consultarProfessores } = require('./professores-escola');
 const TOPICOS = Object.freeze({ historia: 'História da escola', cursos: 'Cursos oferecidos', projetos: 'Projetos desenvolvidos', ambiente: 'Ambiente escolar', eventos: 'Eventos da escola', espacos: 'Espaços da escola', faq: 'Perguntas frequentes', professores: 'Professores e disciplinas' });
 function normalizar(texto) { return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
@@ -12,7 +13,7 @@ function identificarTopicos(pergunta) {
         ambiente: /ambiente escolar|infraestrutura|estrutura da escola|convivencia|seguranca da escola|rotina.{0,25}escola|entrada e saida|movimento.{0,25}escola|perfil comunitario|convivio.{0,25}escola/,
         eventos: /\beventos\b|proximo evento|calendario escolar|agenda da escola|feiras? (?:e mostras )?culturais?|mostras? culturais?|festa junina|show de talentos|interclasse|gincana|volta as aulas|reuniao de pais|datas? (?:das? |de )?(?:provas|recuperacao)/,
         espacos: /\bespacos\b|laboratorios?\b|\bquadra\b|\bauditorio\b|acessibilidade|(?:tem|possui|ha).{0,20}biblioteca|biblioteca.{0,20}escola|sala de (?:leitura|informatica)|\bpatio\b|refeitorio|cozinha.{0,20}escola|salas? de (?:aula|direcao|coordenacao)/,
-        faq: /perguntas frequentes|duvidas frequentes|\bfaq\b|matricula|documentos.{0,20}(?:escola|levar|preciso)|uniforme|merenda|cantina|transferencia escolar|\binep\b|(?:horario|contato|telefone).{0,25}(?:secretaria|direcao|escola)|(?:que horas|quando).{0,25}escola.{0,15}(?:abre|fecha|funciona)|funcionamento.{0,20}escola|rede de ensino|diretoria de ensino|seduc/
+        faq: /perguntas frequentes|duvidas frequentes|\bfaq\b|matricula|documentos.{0,20}(?:escola|levar|preciso)|uniforme|merenda|cantina|transferencia escolar|\binep\b|\bideb\b|censo escolar|quantos.{0,20}alunos|publica ou privada|(?:horario|contato|telefone).{0,25}(?:secretaria|direcao|escola)|(?:que horas|quando).{0,25}escola.{0,15}(?:abre|fecha|funciona)|funcionamento.{0,20}escola|rede de ensino|diretoria de ensino|seduc/
     };
     return Object.keys(regras).filter(topico => regras[topico].test(texto) || new RegExp(`^${topico}[?.! ]*$`).test(texto));
 }
@@ -42,9 +43,10 @@ async function consultarConteudos(topico, pergunta = '', source = getSupabase(),
     }
     const { data, error, count } = await query.limit(20).abortSignal(AbortSignal.timeout(10000));
     if (error) {
-        if (['PGRST205','42P01'].includes(error.code)) return { topico, status: 'tabela_pendente', registros: [], total: 0 };
+        if (['PGRST205','42P01'].includes(error.code)) return consultarConhecimentos(topico, pergunta, source);
         throw error;
     }
+    if (!eventos && !data.length) return consultarConhecimentos(topico, pergunta, source);
     if (eventos) {
         const { data: gerais, error: erroGerais, count: totalGerais } = await source.from('escola_conteudos')
             .select('id,categoria,slug,titulo,conteudo,fonte,verificado_em', { count: 'exact' })
@@ -52,6 +54,7 @@ async function consultarConteudos(topico, pergunta = '', source = getSupabase(),
             .abortSignal(AbortSignal.timeout(10000));
         if (erroGerais && !['PGRST205','42P01'].includes(erroGerais.code)) throw erroGerais;
         const registros = [...data, ...(gerais || []).map(row => ({ ...row, informacao_geral: true }))];
+        if (!registros.length) return consultarConhecimentos(topico, pergunta, source);
         return { topico, status: registros.length ? 'disponivel' : 'sem_conteudo_publicado', registros, total: (count ?? data.length) + (totalGerais ?? gerais?.length ?? 0) };
     }
     return { topico, status: data.length ? 'disponivel' : 'sem_conteudo_publicado', registros: data, total: count ?? data.length };

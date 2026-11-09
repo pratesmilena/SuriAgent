@@ -11,10 +11,10 @@ test('consulta exige publicado e categoria no SDK real',async t=>{
  const result=await consultarConteudos('cursos','',db);assert.equal(result.status,'disponivel');assert.match(formatarConteudos(result),/Documento de teste/);
 });
 test('FAQ aplica busca textual com termos controlados',async t=>{
- const db=await rest(t,(req,res)=>{assert.match(req.query.busca,/matricula/);assert.match(req.query.busca,/wfts/);res.json([]);});const result=await consultarConteudos('faq','O que preciso para matrícula?',db);assert.equal(result.status,'sem_conteudo_publicado');assert.match(formatarConteudos(result),/Não vou completar/);
+ const db=await rest(t,(req,res)=>{if(req.params.table==='conhecimentos') return res.json([]);assert.match(req.query.busca,/matricula/);assert.match(req.query.busca,/wfts/);res.json([]);});const result=await consultarConteudos('faq','O que preciso para matrícula?',db);assert.equal(result.status,'sem_conteudo_publicado');assert.match(formatarConteudos(result),/Não vou completar/);
 });
 test('eventos atuais filtram datas e histórico omite esse filtro',async t=>{
- let calls=0;const db=await rest(t,(req,res)=>{if(req.params.table==='escola_conteudos'){assert.equal(req.query.categoria,'eq.eventos');return res.json([]);}calls++;assert.equal(req.params.table,'escola_eventos');assert.equal(req.query.publicado,'eq.true');if(calls===1)assert.match(req.query.or,/2026-11-05/);else assert.equal(req.query.or,undefined);res.json([]);});
+ let calls=0;const db=await rest(t,(req,res)=>{if(req.params.table==='conhecimentos')return res.json([]);if(req.params.table==='escola_conteudos'){assert.equal(req.query.categoria,'eq.eventos');return res.json([]);}calls++;assert.equal(req.params.table,'escola_eventos');assert.equal(req.query.publicado,'eq.true');if(calls===1)assert.match(req.query.or,/2026-11-05/);else assert.equal(req.query.or,undefined);res.json([]);});
  await consultarConteudos('eventos','Próximos eventos',db,new Date('2026-11-05T12:00:00Z'));await consultarConteudos('eventos','Eventos realizados',db);assert.equal(calls,2);
 });
 test('tabela ausente é distinta de conteúdo vazio e recusa de leitura',async t=>{

@@ -17,7 +17,7 @@ test('usa tabela existente quando as tabelas propostas não existem',async t=>{
  const cursos=await consultarConteudos('cursos','Quais cursos?',db);
  assert.equal(cursos.registros.length,1);assert.match(cursos.registros[0].conteudo,/Fundamental/);
  const espacos=await consultarConteudos('espacos','Tem quadra?',db);assert.equal(espacos.registros[0].id,6);
- for(const topico of ['historia','projetos','eventos'])assert.equal((await consultarConteudos(topico,'',db)).registros.length,0);
+ for(const topico of ['projetos','eventos'])assert.equal((await consultarConteudos(topico,'',db)).registros.length,0);
 });
 test('FAQ filtra a pergunta e não inventa registros bloqueados por RLS',async t=>{
  const db=await banco(t,[{id:4,categoria:'Contato e Endereço',titulo:'Contato',conteudo:'Telefone'}, {id:12,categoria:'FAQ',titulo:'IDEB',conteudo:'IDEB 2023'}]);
@@ -35,4 +35,12 @@ test('resposta de cursos é sucinta e inclui os itinerários informados sem cens
  assert.doesNotMatch(texto,/matrículas|07:00|horarios_aulas|Resumo da Escola/);
  assert.equal((texto.match(/Cursos oferecidos/g)||[]).length,1);
  assert.doesNotMatch(texto,/Fonte:|responsável/);assert.match(result.registros[0].fonte,/responsável/);
+});
+
+test('história usa os decretos conferidos quando ainda não há cadastro no banco',async t=>{
+ const db=await banco(t,[]);const r=await consultarConteudos('historia','Qual a história da escola?',db);
+ const texto=require('../conteudos-escola').formatarConteudos(r);
+ assert.match(texto,/43.679/);assert.match(texto,/1998/);assert.match(texto,/52.439/);assert.match(texto,/2007/);assert.match(texto,/Jardim Iná II/);assert.doesNotMatch(texto,/Fonte:/);
+ const atualizado=await banco(t,[{id:20,categoria:'historia',titulo:'História revisada',conteudo:'Texto atualizado pela escola'}]);
+ assert.match((await consultarConteudos('historia','',atualizado)).registros[0].conteudo,/atualizado pela escola/);
 });

@@ -97,3 +97,14 @@ test('política de conhecimentos libera somente registros revisados para visitan
   }
  }finally{await db.close();}
 });
+
+test('histórico é incluído na tabela existente sem duplicar nem substituir registros',async()=>{
+ const db=new PGlite();try{
+  await db.exec("CREATE TABLE conhecimentos(id bigserial PRIMARY KEY,categoria text,titulo text,conteudo text,palavras_chave text); INSERT INTO conhecimentos VALUES (1,'Informações Gerais','Resumo','Preservado','');");
+  const sql=await fs.readFile('docs/sql/008_historico_escola.sql','utf8');await db.exec(sql);await db.exec(sql);
+  const rows=(await db.query('SELECT * FROM conhecimentos ORDER BY id')).rows;
+  assert.equal(rows.length,2);assert.equal(rows[0].conteudo,'Preservado');assert.equal(rows[1].suri_publicado,true);assert.match(rows[1].conteudo,/1998/);assert.match(rows[1].conteudo,/2007/);
+  await db.exec("INSERT INTO conhecimentos(categoria,titulo,conteudo,palavras_chave) VALUES ('faq','Novo registro','Teste','')");
+  assert.equal((await db.query('SELECT max(id)::int AS id FROM conhecimentos')).rows[0].id,3);
+ }finally{await db.close();}
+});

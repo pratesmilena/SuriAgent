@@ -1,3 +1,4 @@
+const historia = require('./config/historia.json');
 const cursos = require('./config/cursos.json');
 const { getSupabase } = require('./supabase');
 const normalizar = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -12,6 +13,7 @@ async function consultarConhecimentos(topico, pergunta = '', source = getSupabas
         throw error;
     }
     let rows = data.filter(row => IDS[topico]?.includes(Number(row.id)) || normalizar(row.categoria) === topico);
+    if (topico === 'historia' && !rows.length) return { topico, status: 'disponivel', registros: [{ ...historia }], total: 1 };
     if (topico === 'cursos') {
         const turnos = /turnos?|periodos?/.test(normalizar(pergunta));
         if (!turnos && rows.some(row => Number(row.id) === 9)) {

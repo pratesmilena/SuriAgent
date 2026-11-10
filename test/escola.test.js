@@ -70,3 +70,9 @@ test('recusa de leitura no banco é distinguida de chave ausente no chat',async 
     const r=await ask(t,'Aulas do 3ºC (DS) na sexta',{consultar:async()=>{throw Object.assign(new Error('detalhes internos'),{code:'42501'});}});
     assert.equal(r.status,503);assert.equal(r.body.codigo,'LEITURA_ESCOLAR_NAO_AUTORIZADA');assert.match(r.body.erro,/permissão/);assert.doesNotMatch(r.body.erro,/internos/);
 });
+
+test('localização do Supabase é apresentada sem prefixo ou título adicional',async t=>{
+ const conteudo='Endereço cadastrado\nSegunda linha';
+ const r=await ask(t,'Onde fica a escola?',{localizar:async()=>({endereco:conteudo,origem:'supabase-conhecimentos'})});
+ assert.equal(r.body.solucao,conteudo);assert.equal(r.body.formato,'texto');
+});

@@ -56,7 +56,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
                 // A informação confirmada pode ser usada, mas não afirmar que veio do banco.
             }
             origemLocalizacao = local.origem;
-            partes.push(`${local.nome}: ${local.endereco}`);
+            partes.push(local.origem === 'supabase-conhecimentos' ? local.endereco : `${local.nome}: ${local.endereco}`);
         }
         for (const topico of topicos) {
             try { partes.push(formatarConteudos(await conteudos(topico, pergunta))); }

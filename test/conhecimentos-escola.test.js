@@ -33,7 +33,7 @@ test('resposta de cursos é sucinta e inclui os itinerários informados sem cens
  assert.equal(result.registros.length,1);
  for(const trecho of ['6º ao 9º','1ª a 3ª','Linguagens / Humanas','Exatas / Natureza','Técnico em Desenvolvimento de Sistemas','2º ano'])assert.ok(texto.includes(trecho));
  assert.doesNotMatch(texto,/matrículas|07:00|horarios_aulas|Resumo da Escola/);
- assert.equal((texto.match(/Cursos oferecidos/g)||[]).length,1);
+ assert.equal((texto.match(/Cursos oferecidos/g)||[]).length,0);
  assert.doesNotMatch(texto,/Fonte:|responsável/);assert.match(result.registros[0].fonte,/responsável/);
 });
 
@@ -43,4 +43,14 @@ test('história usa os decretos conferidos quando ainda não há cadastro no ban
  assert.match(texto,/43.679/);assert.match(texto,/1998/);assert.match(texto,/52.439/);assert.match(texto,/2007/);assert.match(texto,/Jardim Iná II/);assert.doesNotMatch(texto,/Fonte:/);
  const atualizado=await banco(t,[{id:20,categoria:'historia',titulo:'História revisada',conteudo:'Texto atualizado pela escola'}]);
  assert.match((await consultarConteudos('historia','',atualizado)).registros[0].conteudo,/atualizado pela escola/);
+});
+
+test('conteúdo de conhecimentos é exibido literalmente, sem títulos nem categoria, para qualquer registro',async t=>{
+ const {formatarConteudos}=require('../conteudos-escola');
+ for(const [topico,pergunta,id] of [['eventos','Quais eventos e atividades fazem parte do calendário da escola?',16],['projetos','Quais projetos são desenvolvidos na escola?',17],['cursos','Quais etapas de ensino a escola oferece?',9]]){
+  const conteudo='A Escola Estadual República do Suriname promove eventos e atividades ao longo do ano letivo...\r\n\r\n• Item 1\r\n• Item 2\r\n\r\nOutro parágrafo.';
+  const db=await banco(t,[{id,categoria:topico==='cursos'?'FAQ':topico,titulo:pergunta,conteudo}]);
+  const result=await consultarConteudos(topico,pergunta,db);
+  assert.equal(formatarConteudos(result),conteudo);
+ }
 });

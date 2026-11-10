@@ -16,7 +16,7 @@ async function consultarConhecimentos(topico, pergunta = '', source = getSupabas
     if (topico === 'historia' && !rows.length) return { topico, status: 'disponivel', registros: [{ ...historia }], total: 1 };
     if (topico === 'cursos') {
         const turnos = /turnos?|periodos?/.test(normalizar(pergunta));
-        if (!turnos && rows.some(row => Number(row.id) === 9)) {
+        if (!turnos && !/etapas de ensino/.test(normalizar(pergunta)) && rows.some(row => Number(row.id) === 9)) {
             // A oferta detalhada foi fornecida pela responsável; não atribuí-la ao texto antigo do banco.
             return { topico, status: 'disponivel', registros: [{ titulo: 'Cursos oferecidos',
                 conteudo: cursos.etapas.map(x => '• ' + x).join('\n') + '\n\nItinerários (' + cursos.inicioItinerarios.toLowerCase() + '):\n' + cursos.itinerarios.map(x => '• ' + x).join('\n'),
@@ -37,6 +37,6 @@ async function consultarConhecimentos(topico, pergunta = '', source = getSupabas
         if (regra) rows = rows.filter(row => regra[1].includes(Number(row.id)) || regra[2].test(normalizar(row.titulo + ' ' + row.palavras_chave)));
     }
     const registros = rows.slice(0, 20).map(row => ({ ...row, informacao_geral: true, fonte: 'Base escolar no Supabase · conhecimentos' }));
-    return { topico, status: registros.length ? 'disponivel' : 'sem_conteudo_publicado', registros, total: rows.length };
+    return { topico, origem: 'conhecimentos', status: registros.length ? 'disponivel' : 'sem_conteudo_publicado', registros, total: rows.length };
 }
 module.exports = { consultarConhecimentos };

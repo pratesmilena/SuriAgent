@@ -118,11 +118,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatHistory = document.getElementById('chat-history');
     const welcomeScreen = document.getElementById('welcome-screen');
     const sendBtn = document.getElementById('send-btn');
-    document.querySelectorAll('[data-school-question]').forEach(button => {
-        button.addEventListener('click', () => {
-            userInput.value = button.dataset.schoolQuestion;
-            userInput.focus();
-        });
+    document.addEventListener('click', event => {
+        const button = event.target.closest('[data-school-question]');
+        if (!button) return;
+        userInput.value = button.dataset.schoolQuestion;
+        userInput.focus();
+    });
+    const faqToggle = document.getElementById('faq-toggle');
+    const faqPanel = document.getElementById('faq-suggestions');
+    let faqLoaded = false;
+    let faqLoading = false;
+    faqToggle?.addEventListener('click', async () => {
+        faqPanel.hidden = !faqPanel.hidden;
+        faqToggle.setAttribute('aria-expanded', String(!faqPanel.hidden));
+        if (faqPanel.hidden || faqLoaded || faqLoading) return;
+        faqLoading = true;
+        const status = document.getElementById('faq-status');
+        status.textContent = 'Carregando perguntas…';
+        try {
+            const response = await fetch('/api/escola/perguntas-frequentes', { signal: AbortSignal.timeout(10000) });
+            const data = await response.json();
+            if (!response.ok || !Array.isArray(data.perguntas)) throw new Error('indisponivel');
+            const container = document.getElementById('faq-questions');
+            container.replaceChildren(...data.perguntas.map(item => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-outline-secondary';
+                button.dataset.schoolQuestion = item.pergunta;
+                button.dataset.route = 'chat-panel';
+                button.textContent = item.pergunta;
+                return button;
+            }));
+            status.textContent = 'Sugestões de consulta; não representam um ranking de uso.';
+            faqLoaded = true;
+        } catch {
+            status.textContent = 'Não foi possível carregar as sugestões. Feche e abra esta seção para tentar novamente.';
+        } finally { faqLoading = false; }
     });
 
     chatForm.addEventListener('submit', async (e) => {

@@ -22,7 +22,7 @@ test('tabela ausente é distinta de conteúdo vazio e recusa de leitura',async t
  await assert.rejects(consultarConteudos('toString','',db),{status:400});
 });
 test('o chat usa a base para os tópicos novos, sem depender da IA',async()=>{
- for(const pergunta of ['Qual a história da escola?','Quais cursos são oferecidos?','Quais projetos desenvolvidos?','Como é o ambiente escolar?','Quais os próximos eventos?','Quais espaços disponíveis?','Perguntas frequentes']){
+ for(const pergunta of ['Qual a história da escola?','Quais cursos são oferecidos?','Quais projetos desenvolvidos?','Como é o ambiente escolar?','Quais os próximos eventos?','Quais espaços disponíveis?']){
   let body;const res={status(){return this;},json(x){body=x;return this;}};let calls=0;
   await criarPerguntaEscola({conteudos:async topico=>{calls++;return {topico,status:'disponivel',registros:[{titulo:'Teste',conteudo:'Dado confirmado de teste',fonte:'Fonte de teste'}],total:1};}})({body:{pergunta}},res);assert.equal(body.handled,true);assert.match(body.solucao,/Dado confirmado/);assert.ok(calls>0);
  }

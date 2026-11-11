@@ -29,9 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fechar também ao escolher a seção que já está aberta.
         if (mobile()) bootstrap.Offcanvas.getInstance(sidebar)?.hide();
     }));
-    document.querySelectorAll('[data-route]').forEach(link => link.addEventListener('click', event => {
+    document.addEventListener('click', event => {
+        const link = event.target.closest('[data-route]');
+        if (!link) return;
         event.preventDefault(); go(link.dataset.route);
-    }));
+    });
     document.querySelectorAll('[data-bs-target="#account-modal"]').forEach(button => button.addEventListener('click', event => {
         if (!mobile() || !sidebar.classList.contains('show')) return;
         // Não sobrepor duas armadilhas de foco (menu e modal) no celular.

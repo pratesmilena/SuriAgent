@@ -11,6 +11,7 @@ Assistente virtual voltado ao **período da tarde** da Escola Estadual Repúblic
 - Respostas escolares obtidas pela API do projeto. Perguntas diretas usam o banco; pedidos explícitos de resumo, explicação ou comparação podem usar o Gemini para selecionar trechos relevantes dos conteúdos autorizados. Sem chave, dados relevantes ou disponibilidade do serviço, permanece a resposta direta.
 - Exibição do campo `conteudo` da base `conhecimentos`, preservando listas, parágrafos e quebras de linha, sem acrescentar títulos, perguntas duplicadas ou fontes visíveis.
 - Consulta de eletivas pelos vínculos docentes e pela disciplina `ELETIVA` da grade, com professores e turmas. Os temas das eletivas não são inferidos quando ausentes do cadastro.
+- Perguntas frequentes com oito sugestões úteis e atalhos para consultar o chat. São sugestões editoriais, sem ranking de uso ou coleta de conversas.
 - Busca de perguntas escolares não reconhecidas por termos do título, conteúdo e palavras-chave, sem listar uma FAQ genérica.
 - Consulta de professores e disciplinas combinando o cadastro docente publicado e a grade da tarde, com reconhecimento de Ale/Alessandra nas pesquisas.
 - Chat geral com integração a Gemini, Groq ou OpenRouter, conforme configuração no servidor. A interface não oferece seleção de provedor ou modelo.
@@ -98,6 +99,7 @@ Os scripts em `docs/sql/` são executados manualmente pelo administrador. Não h
 | `GET /api/horarios/catalogo` | Turmas e dias disponíveis |
 | `GET /api/horarios?turma=...&dia=...` | Aulas da turma; aceita dias de segunda a sexta ou `SEMANA` |
 | `POST /api/escola/perguntar` | Pergunta escolar no corpo `{ "pergunta": "..." }` |
+| `GET /api/escola/perguntas-frequentes` | Sugestões editoriais de perguntas |
 | `GET /api/escola/conteudos/:topico` | Registros por assunto |
 | `GET /api/escola` | Cadastro de referência da escola |
 | `GET /api/auth/config` | Configuração pública necessária ao login |
@@ -117,7 +119,7 @@ npm run check:contents
 npm run check:gemini  # uma chamada real ao Gemini, se a chave estiver configurada
 ```
 
-A suíte atual contém **104 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
+A suíte atual contém **107 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
 
 As verificações de integração usam as credenciais do ambiente e apenas leem dados. `check:school` verifica uma turma/dia e o endereço; `check:contents` verifica os assuntos da base. Relatórios locais ficam em `.local/`, fora do Git.
 
@@ -151,6 +153,7 @@ Os módulos da API, consultas e configuração ficam na raiz. `dist/`, `public/g
 
 ## Documentação
 
+- [Perguntas frequentes e análise de acompanhamento](docs/PERGUNTAS_FREQUENTES.md)
 - [Gemini com a base escolar](docs/GEMINI_E_SUPABASE.md)
 - [Publicação no Netlify](docs/PUBLICAR_NETLIFY.md)
 - [Login Google e interface](docs/LOGIN_GOOGLE_E_INTERFACE.md)

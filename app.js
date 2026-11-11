@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const { listaPerguntasFrequentes } = require('./perguntas-frequentes');
 const express = require('express');
 const path = require('path');
 const { criarDiagnostico } = require('./ai');
@@ -37,6 +38,7 @@ function createApp({ templatesDb: db = null, platform = 'local' } = {}) {
     app.get('/api/horarios/catalogo', criarCatalogoHorarios());
     app.get('/api/horarios', criarConsultaHorarios());
     app.get('/api/escola', (req, res) => res.json(informacoesEscola()));
+    app.get('/api/escola/perguntas-frequentes', (req, res) => res.json(listaPerguntasFrequentes()));
     app.get('/api/escola/conteudos/:topico', criarListaConteudos());
     app.post('/api/escola/perguntar', criarPerguntaEscola());
     app.get('/api/auth/config', async (req, res) => {

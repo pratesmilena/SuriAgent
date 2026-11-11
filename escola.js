@@ -3,6 +3,7 @@ const { responderComBase, perguntaAberta } = require('./respostas-escola-ia');
 const { buscarConhecimentos, perguntaEletivas } = require('./busca-conhecimentos');
 const { consultarEletivas } = require('./professores-escola');
 const { somenteOutroPeriodo } = require('./escopo-tarde');
+const { pedidoListaFaq, respostaListaFaq } = require('./perguntas-frequentes');
 const cadastro = require('./config/escola.json');
 const { erroConsulta } = require('./erros-consulta');
 const { identificarTopicos, consultarConteudos, formatarConteudos } = require('./conteudos-escola');
@@ -42,6 +43,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
         if (typeof pergunta !== 'string' || !pergunta.trim() || pergunta.length > 10000) {
             return res.status(400).json({ erro: 'Informe uma pergunta de até 10.000 caracteres.' });
         }
+        if (pedidoListaFaq(pergunta)) return res.json({ handled: true, solucao: respostaListaFaq(), formato: 'texto' });
         if (somenteOutroPeriodo(pergunta)) return res.json({ handled: true, solucao: 'O Suri está configurado para atender ao período da tarde. Para informações da manhã, consulte a secretaria.', formato: 'texto' });
         const intencao = interpretar(pergunta);
         let topicos = identificarTopicos(pergunta);

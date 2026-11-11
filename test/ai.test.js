@@ -76,3 +76,10 @@ test('erro técnico do provedor não é exposto ao usuário do chat',async t=>{
     const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>{server.closeAllConnections();server.close(r);}));
     const response=await fetch(`http://127.0.0.1:${server.address().port}/api/diagnosticar`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({logErro:'Oi'})});assert.equal(response.status,503);const body=await response.json();assert.match(body.erro,/consultas escolares/);assert.doesNotMatch(body.erro,/GEMINI|modelo|API_KEY/);
 });
+
+test('elaboração escolar usa instruções próprias no Gemini sem enviar a chave no conteúdo',async()=>{
+ const result=await generateAnswer({provider:'gemini',message:'{"documentos":[{"id":0,"conteudo":"Projeto de leitura"}]}',env:{GEMINI_API_KEY:'private-test-key'},systemPrompt:'Selecione somente índices dos documentos.',timeoutMs:8000,fetchImpl:async(url,options)=>{
+  const body=JSON.parse(options.body);assert.equal(body.systemInstruction.parts[0].text,'Selecione somente índices dos documentos.');assert.ok(!options.body.includes('private-test-key'));assert.ok(!url.includes('private-test-key'));
+  return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:'{"trechos":[0]}'}]}}]})};
+ }});assert.equal(result.solucao,'{"trechos":[0]}');
+});

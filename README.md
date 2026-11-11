@@ -8,7 +8,7 @@ Assistente virtual da **Escola Estadual República do Suriname**, com consulta d
 
 - Consulta de aulas por turma e dia, de segunda a sexta-feira, ou pela semana completa. As turmas são carregadas do Supabase.
 - Chat com perguntas sobre horários, localização, história, cursos, projetos, ambiente escolar, eventos, espaços, perguntas frequentes, professores e disciplinas.
-- Respostas escolares obtidas pela API do projeto, sem depender de um modelo de IA para consultar os registros. Informações não disponíveis são indicadas na resposta.
+- Respostas escolares obtidas pela API do projeto. Perguntas diretas usam o banco; pedidos explícitos de resumo, explicação ou comparação podem usar o Gemini para selecionar trechos relevantes dos conteúdos autorizados. Sem chave, dados relevantes ou disponibilidade do serviço, permanece a resposta direta.
 - Exibição do campo `conteudo` da base `conhecimentos`, preservando listas, parágrafos e quebras de linha, sem acrescentar títulos, perguntas duplicadas ou fontes visíveis.
 - Consulta de professores e disciplinas combinando o cadastro docente publicado e a grade da tarde, com reconhecimento de Ale/Alessandra nas pesquisas.
 - Chat geral com integração a Gemini, Groq ou OpenRouter, conforme configuração no servidor. A interface não oferece seleção de provedor ou modelo.
@@ -112,9 +112,10 @@ npm test
 npm run build:netlify
 npm run check:school
 npm run check:contents
+npm run check:gemini  # uma chamada real ao Gemini, se a chave estiver configurada
 ```
 
-A suíte atual contém **87 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
+A suíte atual contém **93 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
 
 As verificações de integração usam as credenciais do ambiente e apenas leem dados. `check:school` verifica uma turma/dia e o endereço; `check:contents` verifica os assuntos da base. Relatórios locais ficam em `.local/`, fora do Git.
 
@@ -148,6 +149,7 @@ Os módulos da API, consultas e configuração ficam na raiz. `dist/`, `public/g
 
 ## Documentação
 
+- [Gemini com a base escolar](docs/GEMINI_E_SUPABASE.md)
 - [Publicação no Netlify](docs/PUBLICAR_NETLIFY.md)
 - [Login Google e interface](docs/LOGIN_GOOGLE_E_INTERFACE.md)
 - [Base existente conhecimentos](docs/CORRIGIR_BASE_CONHECIMENTOS.md)

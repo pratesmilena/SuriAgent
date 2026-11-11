@@ -11,7 +11,8 @@
     "build:ui": "node scripts/build-ui.js",
     "prestart": "npm run build:ui",
     "check:contents": "node scripts/check-contents.js",
-    "build:netlify": "node scripts/build-netlify.js"
+    "build:netlify": "node scripts/build-netlify.js",
+    "check:gemini": "node scripts/check-gemini.js"
   },
   "keywords": [],
   "author": "",

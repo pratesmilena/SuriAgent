@@ -18,7 +18,7 @@ function publicConfig(env = process.env) {
 }
 
 function failure(message, status) { return Object.assign(new Error(message), { status }); }
-async function generateAnswer({ provider, message, env = process.env, fetchImpl = fetch }) {
+async function generateAnswer({ provider, message, env = process.env, fetchImpl = fetch, systemPrompt = SYSTEM_PROMPT, timeoutMs = 45000 }) {
     const id = provider || env.AI_PROVIDER || 'gemini';
     if (!Object.hasOwn(PROVIDERS, id) || PROVIDERS[id].browser) throw failure('Selecione um provedor de IA válido para o servidor.', 400);
     const info = PROVIDERS[id];
@@ -29,17 +29,17 @@ async function generateAnswer({ provider, message, env = process.env, fetchImpl 
         ? `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`
         : info.url;
     const body = gemini ? {
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: 'user', parts: [{ text: message }] }],
         generationConfig: { maxOutputTokens: 2048 }
     } : {
-        model, messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: message }],
+        model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }],
         max_tokens: 2048, ...(id === 'openrouter' ? { provider: { allow_fallbacks: false } } : {})
     };
     let response;
     try {
         response = await fetchImpl(url, {
-            method: 'POST', signal: AbortSignal.timeout(45000),
+            method: 'POST', signal: AbortSignal.timeout(timeoutMs),
             headers: { 'Content-Type': 'application/json', ...(gemini ? { 'x-goog-api-key': env[info.key] } : { Authorization: `Bearer ${env[info.key]}` }) },
             body: JSON.stringify(body)
         });

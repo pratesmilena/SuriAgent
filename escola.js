@@ -1,4 +1,5 @@
 const { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios } = require('./supabase');
+const { responderComBase, perguntaAberta } = require('./respostas-escola-ia');
 const cadastro = require('./config/escola.json');
 const { erroConsulta } = require('./erros-consulta');
 const { identificarTopicos, consultarConteudos, formatarConteudos } = require('./conteudos-escola');
@@ -32,7 +33,7 @@ function informacoesEscola(env = process.env) {
     }
     return { nome: cadastro.nome, endereco, fonte, origem: cadastro.origem, localizacaoConfirmada: !!endereco };
 }
-function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consultarLocalizacao, listar = listarCatalogoHorarios, conteudos = consultarConteudos, env = process.env } = {}) {
+function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consultarLocalizacao, listar = listarCatalogoHorarios, conteudos = consultarConteudos, elaborar = responderComBase, env = process.env } = {}) {
     return async (req, res) => {
         const { pergunta } = req.body || {};
         if (typeof pergunta !== 'string' || !pergunta.trim() || pergunta.length > 10000) {
@@ -58,12 +59,18 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
             origemLocalizacao = local.origem;
             partes.push(local.origem === 'supabase-conhecimentos' ? local.endereco : `${local.nome}: ${local.endereco}`);
         }
+        const resultados = [];
         for (const topico of topicos) {
-            try { partes.push(formatarConteudos(await conteudos(topico, pergunta))); }
+            try { const resultado = await conteudos(topico, pergunta); resultados.push(resultado); partes.push(formatarConteudos(resultado)); }
             catch (error) {
                 const falha = erroConsulta(error);
                 return res.status(falha.status).json({ handled: true, erro: falha.mensagem, codigo: falha.codigo });
             }
+        }
+        if (perguntaAberta(pergunta) && !intencao.horario && !intencao.localizacao && !intencao.listaTurmas
+            && resultados.length && resultados.every(r => r.origem === 'conhecimentos' && r.status === 'disponivel')) {
+            const resposta = await elaborar(pergunta, resultados, { env });
+            if (resposta) partes.splice(0, partes.length, resposta);
         }
         let aulas;
         let turma;

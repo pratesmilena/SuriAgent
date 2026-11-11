@@ -70,4 +70,13 @@ async function consultarProfessores(pergunta = '', source = getSupabase()) {
     if (!rows.length && erros.length) throw erros[0].reason;
     return { topico: 'professores', status: rows.length ? 'disponivel' : 'sem_conteudo_publicado', registros: rows.slice(0, 50), total: rows.length, limite: 50, avisos };
 }
-module.exports = { consultarProfessores };
+async function consultarEletivas(pergunta = '', source = getSupabase()) {
+    const texto = normalizar(pergunta);
+    let filtro = 'eletiva';
+    if (texto.includes('ensino fundamental')) filtro += ' ensino fundamental';
+    if (texto.includes('ensino medio')) filtro += ' ensino medio';
+    if (/\bmanha\b/.test(texto)) filtro += ' manha';
+    if (/\btarde\b/.test(texto)) filtro += ' tarde';
+    return consultarProfessores(filtro, source);
+}
+module.exports = { consultarProfessores, consultarEletivas };

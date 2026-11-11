@@ -1,5 +1,7 @@
 const { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios } = require('./supabase');
 const { responderComBase, perguntaAberta } = require('./respostas-escola-ia');
+const { buscarConhecimentos, perguntaEletivas } = require('./busca-conhecimentos');
+const { consultarEletivas } = require('./professores-escola');
 const cadastro = require('./config/escola.json');
 const { erroConsulta } = require('./erros-consulta');
 const { identificarTopicos, consultarConteudos, formatarConteudos } = require('./conteudos-escola');
@@ -33,7 +35,7 @@ function informacoesEscola(env = process.env) {
     }
     return { nome: cadastro.nome, endereco, fonte, origem: cadastro.origem, localizacaoConfirmada: !!endereco };
 }
-function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consultarLocalizacao, listar = listarCatalogoHorarios, conteudos = consultarConteudos, elaborar = responderComBase, env = process.env } = {}) {
+function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consultarLocalizacao, listar = listarCatalogoHorarios, conteudos = consultarConteudos, elaborar = responderComBase, buscar = buscarConhecimentos, eletivas = consultarEletivas, env = process.env } = {}) {
     return async (req, res) => {
         const { pergunta } = req.body || {};
         if (typeof pergunta !== 'string' || !pergunta.trim() || pergunta.length > 10000) {
@@ -43,7 +45,41 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
         let topicos = identificarTopicos(pergunta);
         if (intencao.turmas.length && intencao.dias.length) topicos = topicos.filter(topico => topico !== 'professores');
         if (topicos.includes('professores')) topicos = topicos.filter(topico => topico !== 'cursos');
-        if (!topicos.length && !intencao.horario && !intencao.localizacao && !intencao.listaTurmas && /\bescola\b|suriname/.test(normalizar(pergunta))) topicos.push('faq');
+        const perguntaSobreEletivas = perguntaEletivas(pergunta);
+        if (perguntaSobreEletivas) {
+            try {
+                const resultado = await eletivas(pergunta);
+                let registros = resultado.registros;
+                if (intencao.turmas.length === 1) registros = registros.filter(row => row.origens.some(o => o.turmas?.includes(intencao.turmas[0])));
+                const solucao = registros.length
+                    ? 'As eletivas estão cadastradas com estes professores:\n\n' + registros.map(row => {
+                        const turmas = [...new Set(row.origens.flatMap(o => o.turmas || []))];
+                        return '• ' + row.professor + (turmas.length ? ' — turmas: ' + turmas.join(', ') : '') + '.';
+                    }).join('\n') + '\n\nA grade identifica a disciplina como ELETIVA, mas não informa os nomes dos temas. Confirme esses nomes com os professores ou a coordenação.'
+                    : 'Não encontrei eletivas acessíveis para essa consulta no cadastro de professores e horários. Confirme com a coordenação ou secretaria.';
+                return res.json({ handled: true, solucao, formato: 'texto', fonte: 'base-escolar' });
+            } catch (error) {
+                const falha = erroConsulta(error);
+                return res.status(falha.status).json({ handled: true, erro: falha.mensagem, codigo: falha.codigo });
+            }
+        }
+        const buscaLivre = !topicos.length && !intencao.horario && !intencao.localizacao && !intencao.listaTurmas
+            && /\bescola\b|suriname/.test(normalizar(pergunta));
+        if (buscaLivre) {
+            try {
+                const resultado = await buscar(pergunta);
+                let solucao = resultado.registros.map(row => row.conteudo).join('\n\n');
+                if (!solucao) solucao = 'Não encontrei informação publicada que responda a essa pergunta. Você pode reformular ou confirmar com a secretaria.';
+                else {
+                    const resumo = await elaborar(pergunta, [resultado], { env, permitirPerguntaDireta: true });
+                    if (resumo) solucao = resumo;
+                }
+                return res.json({ handled: true, solucao, formato: 'texto', fonte: 'base-escolar' });
+            } catch (error) {
+                const falha = erroConsulta(error);
+                return res.status(falha.status).json({ handled: true, erro: falha.mensagem, codigo: falha.codigo });
+            }
+        }
         if (!intencao.horario && !intencao.localizacao && !intencao.listaTurmas && !topicos.length) return res.json({ handled: false });
         const partes = [];
         const escola = informacoesEscola(env);

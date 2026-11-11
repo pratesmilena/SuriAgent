@@ -38,3 +38,9 @@ npm run check:gemini
 Teste também “Resuma os projetos da escola”, “Quais projetos são desenvolvidos na escola?”, “Onde fica a escola?” e uma consulta de turma/dia. As três últimas mantêm a resposta direta existente. Mesmo com uma chave válida, não é possível garantir ausência de falhas de serviços externos.
 
 O nome alternativo não altera a sensibilidade do valor nem as regras da hospedagem. Se ambos estiverem preenchidos, `SURI_GEMINI` tem prioridade. O valor continua sendo usado exclusivamente no servidor. Se o painel exigir marcação de segredo, mantenha essa proteção; não há garantia de que a troca de nome elimine a restrição.
+
+## Eletivas e perguntas não reconhecidas
+
+“Quais eletiva tem na escola?” e “Tem disciplinas optativas?” são direcionadas ao cadastro de professores/disciplinas e à grade da tarde. A disciplina ELETIVA retorna os professores e as turmas correspondentes, agrupando aulas repetidas. A base atual não informa os nomes dos temas dessas eletivas: o agente não os inventa nem equipara clubes juvenis ou itinerários às eletivas.
+
+Perguntas escolares sem um tópico reconhecido consultam termos específicos do título, categoria, palavras-chave e conteúdo de conhecimentos. Termos genéricos como escola são descartados. O Gemini pode selecionar trechos dentre os registros encontrados, mesmo quando a pergunta não contém “resuma”. Nenhum registro relevante significa resposta de informação não encontrada, sem recorrer à lista inteira de FAQ. A busca é textual, não vetorial; sinônimos não cadastrados ainda podem precisar de palavras-chave melhores.

@@ -10,6 +10,8 @@ Assistente virtual da **Escola Estadual República do Suriname**, com consulta d
 - Chat com perguntas sobre horários, localização, história, cursos, projetos, ambiente escolar, eventos, espaços, perguntas frequentes, professores e disciplinas.
 - Respostas escolares obtidas pela API do projeto. Perguntas diretas usam o banco; pedidos explícitos de resumo, explicação ou comparação podem usar o Gemini para selecionar trechos relevantes dos conteúdos autorizados. Sem chave, dados relevantes ou disponibilidade do serviço, permanece a resposta direta.
 - Exibição do campo `conteudo` da base `conhecimentos`, preservando listas, parágrafos e quebras de linha, sem acrescentar títulos, perguntas duplicadas ou fontes visíveis.
+- Consulta de eletivas pelos vínculos docentes e pela disciplina `ELETIVA` da grade, com professores e turmas. Os temas das eletivas não são inferidos quando ausentes do cadastro.
+- Busca de perguntas escolares não reconhecidas por termos do título, conteúdo e palavras-chave, sem listar uma FAQ genérica.
 - Consulta de professores e disciplinas combinando o cadastro docente publicado e a grade da tarde, com reconhecimento de Ale/Alessandra nas pesquisas.
 - Chat geral com integração a Gemini, Groq ou OpenRouter, conforme configuração no servidor. A interface não oferece seleção de provedor ou modelo.
 - Login Google pelo Supabase Auth, com opção de continuar como visitante. As consultas escolares estão disponíveis nos dois modos.
@@ -115,7 +117,7 @@ npm run check:contents
 npm run check:gemini  # uma chamada real ao Gemini, se a chave estiver configurada
 ```
 
-A suíte atual contém **95 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
+A suíte atual contém **102 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
 
 As verificações de integração usam as credenciais do ambiente e apenas leem dados. `check:school` verifica uma turma/dia e o endereço; `check:contents` verifica os assuntos da base. Relatórios locais ficam em `.local/`, fora do Git.
 

@@ -54,3 +54,9 @@ test('nome alternativo Alessandra encontra Ale nos horários',async t=>{
  const result=await consultarProfessores('Quais disciplinas a professora Alessandra leciona?',db);
  assert.equal(result.total,1);assert.equal(result.registros[0].professor,'Ale');
 });
+
+test('consulta de eletivas relaciona professores e turmas sem duplicar aulas',async t=>{
+ const db=await bancoDeTeste(t,[],[{professor:'PEDRO',disciplina:'ELETIVA',turma:'1ºA'},{professor:'PEDRO',disciplina:'ELETIVA',turma:'1ºA'},{professor:'RITA',disciplina:'MAT',turma:'1ºD'}]);
+ const r=await require('../professores-escola').consultarEletivas('Quais eletivas tem na escola?',db);
+ assert.equal(r.registros.length,1);assert.equal(r.registros[0].professor,'PEDRO');assert.deepEqual(r.registros[0].origens[0].turmas,['1ºA']);
+});

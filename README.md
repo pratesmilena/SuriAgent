@@ -1,4 +1,4 @@
-# AgenteSuri
+# SuriAgent
 
 Assistente virtual da **Escola Estadual República do Suriname**, com consulta de informações escolares e horários no Supabase, chat e login opcional com Google.
 

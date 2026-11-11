@@ -7,11 +7,14 @@ const PROVIDERS = Object.freeze({
     puter: { label: 'Puter (conta do usuário)', model: 'gpt-5.4-nano', modelEnv: 'PUTER_MODEL', browser: true }
 });
 
+function geminiKey(env = process.env) { return env.SURI_GEMINI?.trim() || env.GEMINI_API_KEY?.trim() || ''; }
+function providerKey(provider, env) { return provider === 'gemini' ? geminiKey(env) : env[PROVIDERS[provider].key]; }
+
 function modelFor(provider, env) { return env[PROVIDERS[provider].modelEnv] || PROVIDERS[provider].model; }
 function publicConfig(env = process.env) {
     const providers = Object.entries(PROVIDERS).map(([id, info]) => ({
         id, label: info.label, model: modelFor(id, env), browser: !!info.browser,
-        available: info.browser || !!env[info.key]
+        available: info.browser || !!providerKey(id, env)
     }));
     const preferred = env.AI_PROVIDER || 'gemini';
     return { defaultProvider: Object.hasOwn(PROVIDERS, preferred) ? preferred : 'gemini', providers };
@@ -22,7 +25,8 @@ async function generateAnswer({ provider, message, env = process.env, fetchImpl 
     const id = provider || env.AI_PROVIDER || 'gemini';
     if (!Object.hasOwn(PROVIDERS, id) || PROVIDERS[id].browser) throw failure('Selecione um provedor de IA válido para o servidor.', 400);
     const info = PROVIDERS[id];
-    if (!env[info.key]) throw failure('Este provedor de IA ainda não está configurado. Selecione outra opção ou configure a chave no servidor.', 503);
+    const key = providerKey(id, env);
+    if (!key) throw failure('Este provedor de IA ainda não está configurado. Selecione outra opção ou configure a chave no servidor.', 503);
     const model = modelFor(id, env);
     const gemini = id === 'gemini';
     const url = gemini
@@ -40,7 +44,7 @@ async function generateAnswer({ provider, message, env = process.env, fetchImpl 
     try {
         response = await fetchImpl(url, {
             method: 'POST', signal: AbortSignal.timeout(timeoutMs),
-            headers: { 'Content-Type': 'application/json', ...(gemini ? { 'x-goog-api-key': env[info.key] } : { Authorization: `Bearer ${env[info.key]}` }) },
+            headers: { 'Content-Type': 'application/json', ...(gemini ? { 'x-goog-api-key': key } : { Authorization: `Bearer ${key}` }) },
             body: JSON.stringify(body)
         });
     } catch {
@@ -83,4 +87,4 @@ function criarDiagnostico(generate = generateAnswer) {
     };
 }
 
-module.exports = { PROVIDERS, publicConfig, generateAnswer, criarDiagnostico };
+module.exports = { geminiKey, PROVIDERS, publicConfig, generateAnswer, criarDiagnostico };

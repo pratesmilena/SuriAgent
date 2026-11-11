@@ -33,3 +33,8 @@ test('endereço, horários e ausência de dados nunca são enviados para elabora
  await perguntar('Explique as aulas do 3C na sexta',{elaborar,consultar:async()=>[]});
  await perguntar('Resuma os projetos da escola',{elaborar,conteudos:async()=>({origem:'conhecimentos',status:'sem_conteudo_publicado',registros:[]})});
 });
+
+test('elaboração escolar aceita o mesmo nome alternativo da credencial Gemini',async()=>{
+ let chamada=false;const r=await responderComBase('Resuma os projetos',base,{env:{SURI_GEMINI:'test-alias'},generate:async()=>{chamada=true;return{solucao:'{"trechos":[0]}'}}});
+ assert.equal(chamada,true);assert.equal(r,'Projeto de leitura.');
+});

@@ -17,9 +17,9 @@ Essa busca usa as categorias e regras já implementadas; não é busca vetorial 
 ## Configurar a conta
 
 1. Acesse https://aistudio.google.com/apikey com sua própria conta Google e crie uma chave vinculada a um projeto elegível.
-2. Localmente, salve `GEMINI_API_KEY` em `.env`, já ignorado pelo Git. No ambiente em nuvem, use as configurações seguras de variáveis/segredos.
+2. Localmente, salve `SURI_GEMINI` (ou o nome anterior `GEMINI_API_KEY`) em `.env`, já ignorado pelo Git. No ambiente em nuvem, use as configurações seguras de variáveis/segredos.
 3. Configure `GEMINI_MODEL` com um modelo de geração de texto disponível nessa conta. O valor de exemplo do repositório não comprova acesso ao modelo: confirme no AI Studio.
-4. No Netlify, configure `GEMINI_API_KEY` e `GEMINI_MODEL` para a execução das Functions, no contexto de produção, e faça um novo deploy. O `.env` local não é transferido ao Netlify.
+4. No Netlify, configure `SURI_GEMINI` (ou o nome anterior `GEMINI_API_KEY`) e `GEMINI_MODEL` para a execução das Functions, no contexto de produção, e faça um novo deploy. O `.env` local não é transferido ao Netlify.
 5. `AI_PROVIDER=gemini` escolhe Gemini para o chat geral; a síntese escolar usa Gemini especificamente. Outros serviços do chat geral continuam disponíveis.
 
 Não envie chaves no chat, em conhecimentos, em capturas de tela nem no GitHub. A chave publicável do Supabase é uma credencial distinta da chave secreta Gemini. Não é necessário criar tabelas ou alterar políticas para ativar este recurso.
@@ -36,3 +36,5 @@ npm run check:gemini
 `check:gemini` faz uma chamada real e informa apenas status, modelo e presença de texto. Código 2 significa chave ausente; código 1 indica falha de chave, modelo, rede ou cota. Não imprime chave nem a resposta do provedor. A chamada pode consumir a cota da conta. A camada gratuita possui limites e depende do modelo/projeto; não há promessa de uso ilimitado ou de ausência de cobrança em contas com faturamento habilitado.
 
 Teste também “Resuma os projetos da escola”, “Quais projetos são desenvolvidos na escola?”, “Onde fica a escola?” e uma consulta de turma/dia. As três últimas mantêm a resposta direta existente. Mesmo com uma chave válida, não é possível garantir ausência de falhas de serviços externos.
+
+O nome alternativo não altera a sensibilidade do valor nem as regras da hospedagem. Se ambos estiverem preenchidos, `SURI_GEMINI` tem prioridade. O valor continua sendo usado exclusivamente no servidor. Se o painel exigir marcação de segredo, mantenha essa proteção; não há garantia de que a troca de nome elimine a restrição.

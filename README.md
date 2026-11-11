@@ -65,7 +65,7 @@ Para atualizar uma instalação existente, obtenha as alterações do Git e rein
 | `SUPABASE_PUBLISHABLE_KEY` | Chave pública para as consultas escolares |
 | `SUPABASE_AUTH_PUBLISHABLE_KEY` | Chave pública específica do login, quando configurada separadamente |
 | `AI_PROVIDER` | Serviço do chat geral: `gemini`, `groq` ou `openrouter` |
-| `GEMINI_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY` | Chave do serviço escolhido, usada no servidor |
+| `SURI_GEMINI` (ou `GEMINI_API_KEY`), `GROQ_API_KEY`, `OPENROUTER_API_KEY` | Chave do serviço escolhido, usada no servidor |
 | `GEMINI_MODEL`, `GROQ_MODEL`, `OPENROUTER_MODEL` | Modelo do serviço escolhido |
 | `PORT` | Porta local, padrão `3000` |
 
@@ -115,7 +115,7 @@ npm run check:contents
 npm run check:gemini  # uma chamada real ao Gemini, se a chave estiver configurada
 ```
 
-A suíte atual contém **93 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
+A suíte atual contém **95 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
 
 As verificações de integração usam as credenciais do ambiente e apenas leem dados. `check:school` verifica uma turma/dia e o endereço; `check:contents` verifica os assuntos da base. Relatórios locais ficam em `.local/`, fora do Git.
 

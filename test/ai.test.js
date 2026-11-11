@@ -83,3 +83,13 @@ test('elaboração escolar usa instruções próprias no Gemini sem enviar a cha
   return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:'{"trechos":[0]}'}]}}]})};
  }});assert.equal(result.solucao,'{"trechos":[0]}');
 });
+
+test('nome alternativo SURI_GEMINI funciona no servidor sem expor valor na configuração pública',async()=>{
+ const env={SURI_GEMINI:' alias-private ',GEMINI_API_KEY:'old-private'};
+ const r=await generateAnswer({provider:'gemini',message:'Olá',env,fetchImpl:async(url,options)=>{
+  assert.equal(options.headers['x-goog-api-key'],'alias-private');assert.ok(!url.includes('alias-private'));assert.ok(!options.body.includes('alias-private'));
+  return{ok:true,json:async()=>({candidates:[{content:{parts:[{text:'Olá'}]}}]})};
+ }});assert.equal(r.solucao,'Olá');
+ const config=publicConfig(env);assert.equal(config.providers.find(x=>x.id==='gemini').available,true);
+ assert.doesNotMatch(JSON.stringify(config),/alias-private|old-private/);
+});

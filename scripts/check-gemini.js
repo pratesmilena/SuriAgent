@@ -1,8 +1,8 @@
 require('dotenv').config({ quiet: true });
-const { generateAnswer } = require('../ai');
+const { generateAnswer, geminiKey } = require('../ai');
 (async () => {
-    if (!process.env.GEMINI_API_KEY?.trim()) {
-        console.log(JSON.stringify({ status: 'missing_key', action: 'Configure GEMINI_API_KEY nas variáveis seguras do servidor.' }));
+    if (!geminiKey()) {
+        console.log(JSON.stringify({ status: 'missing_key', action: 'Configure SURI_GEMINI ou GEMINI_API_KEY nas variáveis seguras do servidor.' }));
         process.exitCode = 2; return;
     }
     // Uma chamada real, autorizada pelo administrador; pode consumir a cota da conta.

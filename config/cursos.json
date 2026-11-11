@@ -1,6 +1,19 @@
 {
-  "etapas": ["Ensino Fundamental II: 6º ao 9º ano", "Ensino Médio: 1ª a 3ª série"],
-  "itinerarios": ["Linguagens / Humanas", "Exatas / Natureza", "Técnico em Desenvolvimento de Sistemas"],
+  "etapas": [
+    "Ensino Fundamental II: 6º ao 9º ano",
+    "Ensino Médio: 1ª a 3ª série"
+  ],
+  "itinerarios": [
+    "Linguagens / Humanas",
+    "Exatas / Natureza",
+    "Técnico em Desenvolvimento de Sistemas"
+  ],
   "inicioItinerarios": "A partir do 2º ano do Ensino Médio",
-  "fonte": "Oferta informada pela responsável pelo projeto em 06/11/2026"
+  "fonte": "Oferta informada pela responsável pelo projeto em 06/11/2026",
+  "etapasTarde": [
+    "Ensino Médio: 1ª a 3ª série"
+  ],
+  "itinerariosTarde": [
+    "Técnico em Desenvolvimento de Sistemas"
+  ]
 }

@@ -443,3 +443,6 @@ public/generated/
 # Saída de publicação e cache do Netlify
 /dist/
 /.netlify/
+
+# Identificação da versão criada no build
+/config/build-info.generated.json

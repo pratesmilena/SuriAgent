@@ -72,7 +72,7 @@ async function consultarProfessores(pergunta = '', source = getSupabase()) {
 }
 async function consultarEletivas(pergunta = '', source = getSupabase()) {
     const texto = normalizar(pergunta);
-    let filtro = 'eletiva';
+    let filtro = 'eletiva tarde';
     if (texto.includes('ensino fundamental')) filtro += ' ensino fundamental';
     if (texto.includes('ensino medio')) filtro += ' ensino medio';
     if (/\bmanha\b/.test(texto)) filtro += ' manha';

@@ -1,3 +1,4 @@
+const fs = require('node:fs');
 const express = require('express');
 const path = require('path');
 const { criarDiagnostico } = require('./ai');
@@ -27,7 +28,9 @@ function createApp({ templatesDb: db = null, platform = 'local' } = {}) {
     }
 
     app.get('/api/status', (req, res) => {
-        const revision = /^[a-f0-9]{7,40}$/i.test(process.env.COMMIT_REF || '') ? process.env.COMMIT_REF.slice(0, 12) : null;
+        let revision = process.env.COMMIT_REF || '';
+        if (!revision) { try { revision = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/build-info.generated.json'), 'utf8')).revision || ''; } catch {} }
+        revision = /^[a-f0-9]{7,40}$/i.test(revision) ? revision.slice(0, 12) : null;
         res.json({ ambiente: platform, revisao: revision, supabase: diagnosticoConfiguracao(),
             login: { configuracaoPublicaValida: publicAuthConfig().available } });
     });

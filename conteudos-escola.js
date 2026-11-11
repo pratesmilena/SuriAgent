@@ -1,3 +1,4 @@
+const { conteudoDaTarde } = require('./escopo-tarde');
 const { getSupabase } = require('./supabase');
 const { consultarConhecimentos } = require('./conhecimentos-escola');
 const { consultarProfessores } = require('./professores-escola');
@@ -23,7 +24,7 @@ function termosFaq(pergunta) {
 }
 async function consultarConteudos(topico, pergunta = '', source = getSupabase(), agora = new Date()) {
     if (!Object.hasOwn(TOPICOS, topico)) throw Object.assign(new Error('Tópico inválido.'), { status: 400 });
-    if (topico === 'professores') return consultarProfessores(pergunta, source);
+    if (topico === 'professores') return consultarProfessores(pergunta + ' tarde', source);
     const eventos = topico === 'eventos';
     const tabela = eventos ? 'escola_eventos' : 'escola_conteudos';
     let query = source.from(tabela).select(eventos
@@ -41,11 +42,12 @@ async function consultarConteudos(topico, pergunta = '', source = getSupabase(),
         }
         query = query.order('inicio');
     }
-    const { data, error, count } = await query.limit(20).abortSignal(AbortSignal.timeout(10000));
+    const { data: recebidos, error, count } = await query.limit(20).abortSignal(AbortSignal.timeout(10000));
     if (error) {
         if (['PGRST205','42P01'].includes(error.code)) return consultarConhecimentos(topico, pergunta, source);
         throw error;
     }
+    const data = (recebidos || []).map(row => conteudoDaTarde({ ...row, id: null })).filter(Boolean);
     if (!eventos && !data.length) return consultarConhecimentos(topico, pergunta, source);
     if (eventos) {
         const { data: gerais, error: erroGerais, count: totalGerais } = await source.from('escola_conteudos')
@@ -53,11 +55,11 @@ async function consultarConteudos(topico, pergunta = '', source = getSupabase(),
             .eq('publicado', true).eq('categoria', 'eventos').order('titulo').limit(20)
             .abortSignal(AbortSignal.timeout(10000));
         if (erroGerais && !['PGRST205','42P01'].includes(erroGerais.code)) throw erroGerais;
-        const registros = [...data, ...(gerais || []).map(row => ({ ...row, informacao_geral: true }))];
+        const registros = [...data, ...(gerais || []).map(row => conteudoDaTarde({ ...row, id: null, informacao_geral: true })).filter(Boolean)];
         if (!registros.length) return consultarConhecimentos(topico, pergunta, source);
         return { topico, status: registros.length ? 'disponivel' : 'sem_conteudo_publicado', registros, total: (count ?? data.length) + (totalGerais ?? gerais?.length ?? 0) };
     }
-    return { topico, status: data.length ? 'disponivel' : 'sem_conteudo_publicado', registros: data, total: count ?? data.length };
+    return { topico, status: data.length ? 'disponivel' : 'sem_conteudo_publicado', registros: data.map(row => conteudoDaTarde({ ...row, id: null })).filter(Boolean), total: count ?? data.length };
 }
 function formatarConteudos(resultado) {
     const titulo = TOPICOS[resultado.topico];

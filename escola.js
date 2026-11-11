@@ -2,6 +2,7 @@ const { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios } = requ
 const { responderComBase, perguntaAberta } = require('./respostas-escola-ia');
 const { buscarConhecimentos, perguntaEletivas } = require('./busca-conhecimentos');
 const { consultarEletivas } = require('./professores-escola');
+const { somenteOutroPeriodo } = require('./escopo-tarde');
 const cadastro = require('./config/escola.json');
 const { erroConsulta } = require('./erros-consulta');
 const { identificarTopicos, consultarConteudos, formatarConteudos } = require('./conteudos-escola');
@@ -41,6 +42,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
         if (typeof pergunta !== 'string' || !pergunta.trim() || pergunta.length > 10000) {
             return res.status(400).json({ erro: 'Informe uma pergunta de até 10.000 caracteres.' });
         }
+        if (somenteOutroPeriodo(pergunta)) return res.json({ handled: true, solucao: 'O Suri está configurado para atender ao período da tarde. Para informações da manhã, consulte a secretaria.', formato: 'texto' });
         const intencao = interpretar(pergunta);
         let topicos = identificarTopicos(pergunta);
         if (intencao.turmas.length && intencao.dias.length) topicos = topicos.filter(topico => topico !== 'professores');
@@ -52,7 +54,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
                 let registros = resultado.registros;
                 if (intencao.turmas.length === 1) registros = registros.filter(row => row.origens.some(o => o.turmas?.includes(intencao.turmas[0])));
                 const solucao = registros.length
-                    ? 'As eletivas estão cadastradas com estes professores:\n\n' + registros.map(row => {
+                    ? 'As eletivas do período da tarde estão cadastradas com estes professores:\n\n' + registros.map(row => {
                         const turmas = [...new Set(row.origens.flatMap(o => o.turmas || []))];
                         return '• ' + row.professor + (turmas.length ? ' — turmas: ' + turmas.join(', ') : '') + '.';
                     }).join('\n') + '\n\nA grade identifica a disciplina como ELETIVA, mas não informa os nomes dos temas. Confirme esses nomes com os professores ou a coordenação.'

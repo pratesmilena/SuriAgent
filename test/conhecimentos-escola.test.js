@@ -15,7 +15,7 @@ async function banco(t, rows) {
 test('usa tabela existente quando as tabelas propostas não existem',async t=>{
  const db=await banco(t,[{id:9,categoria:'FAQ',titulo:'Etapas',conteudo:'Ensino Fundamental e Médio'}, {id:6,categoria:'Infraestrutura',titulo:'Estrutura',conteudo:'Quadra'}]);
  const cursos=await consultarConteudos('cursos','Quais cursos?',db);
- assert.equal(cursos.registros.length,1);assert.match(cursos.registros[0].conteudo,/Fundamental/);
+ assert.equal(cursos.registros.length,1);assert.match(cursos.registros[0].conteudo,/Ensino Médio/);
  const espacos=await consultarConteudos('espacos','Tem quadra?',db);assert.equal(espacos.registros[0].id,6);
  for(const topico of ['projetos','eventos'])assert.equal((await consultarConteudos(topico,'',db)).registros.length,0);
 });
@@ -31,8 +31,8 @@ test('resposta de cursos é sucinta e inclui os itinerários informados sem cens
  const result=await consultarConteudos('cursos','Quais cursos a escola oferece?',db);
  const texto=require('../conteudos-escola').formatarConteudos(result);
  assert.equal(result.registros.length,1);
- for(const trecho of ['6º ao 9º','1ª a 3ª','Linguagens / Humanas','Exatas / Natureza','Técnico em Desenvolvimento de Sistemas','2º ano'])assert.ok(texto.includes(trecho));
- assert.doesNotMatch(texto,/matrículas|07:00|horarios_aulas|Resumo da Escola/);
+ for(const trecho of ['1ª a 3ª','Técnico em Desenvolvimento de Sistemas','2º ano'])assert.ok(texto.includes(trecho));
+ assert.doesNotMatch(texto,/matrículas|07:00|horarios_aulas|Resumo da Escola|Fundamental|Linguagens \/ Humanas|Exatas \/ Natureza/);
  assert.equal((texto.match(/Cursos oferecidos/g)||[]).length,0);
  assert.doesNotMatch(texto,/Fonte:|responsável/);assert.match(result.registros[0].fonte,/responsável/);
 });
@@ -47,9 +47,9 @@ test('história usa os decretos conferidos quando ainda não há cadastro no ban
 
 test('conteúdo de conhecimentos é exibido literalmente, sem títulos nem categoria, para qualquer registro',async t=>{
  const {formatarConteudos}=require('../conteudos-escola');
- for(const [topico,pergunta,id] of [['eventos','Quais eventos e atividades fazem parte do calendário da escola?',16],['projetos','Quais projetos são desenvolvidos na escola?',17],['cursos','Quais etapas de ensino a escola oferece?',9]]){
+ for(const [topico,pergunta,id] of [['eventos','Quais eventos e atividades fazem parte do calendário da escola?',16],['projetos','Quais projetos são desenvolvidos na escola?',17],['cursos','Quais etapas de ensino a escola oferece?',89]]){
   const conteudo='A Escola Estadual República do Suriname promove eventos e atividades ao longo do ano letivo...\r\n\r\n• Item 1\r\n• Item 2\r\n\r\nOutro parágrafo.';
-  const db=await banco(t,[{id,categoria:topico==='cursos'?'FAQ':topico,titulo:pergunta,conteudo}]);
+  const db=await banco(t,[{id,categoria:topico,titulo:pergunta,conteudo}]);
   const result=await consultarConteudos(topico,pergunta,db);
   assert.equal(formatarConteudos(result),conteudo);
  }

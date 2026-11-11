@@ -1,3 +1,4 @@
+const { conteudoDaTarde } = require('./escopo-tarde');
 const { getSupabase } = require('./supabase');
 const normalizar = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const stop = new Set('a as o os um uma uns umas de da das do dos em na nas no nos e ou que qual quais quem como quando onde por para porque tem ter temos ha existe existem sao e eh me diga pode poderia gostaria saber escola escolar escolas suriname republica oferecido oferecidos oferecida oferecidas oferece oferecem disponivel disponiveis aluno alunos voce voces por favor sobre'.split(' '));
@@ -19,7 +20,7 @@ async function buscarConhecimentos(pergunta, source = getSupabase()) {
         if (data.length < 1000) break;
         if (inicio === 9000) throw new Error('A base excede o limite da consulta completa.');
     }
-    const classificados = rows.map(row => {
+    const classificados = rows.map(conteudoDaTarde).filter(Boolean).map(row => {
         const destaque = tokens(row.titulo + ' ' + (row.palavras_chave || '') + ' ' + row.categoria);
         const corpo = tokens(row.conteudo);
         const encontrados = termos.filter(termo => destaque.includes(termo) || corpo.includes(termo));

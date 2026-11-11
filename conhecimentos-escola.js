@@ -1,3 +1,4 @@
+const { conteudoDaTarde } = require('./escopo-tarde');
 const historia = require('./config/historia.json');
 const cursos = require('./config/cursos.json');
 const { getSupabase } = require('./supabase');
@@ -12,14 +13,14 @@ async function consultarConhecimentos(topico, pergunta = '', source = getSupabas
         if (['PGRST205', '42P01'].includes(error.code)) return { topico, status: 'tabela_pendente', registros: [], total: 0 };
         throw error;
     }
-    let rows = data.filter(row => IDS[topico]?.includes(Number(row.id)) || normalizar(row.categoria) === topico);
+    let rows = data.map(conteudoDaTarde).filter(Boolean).filter(row => IDS[topico]?.includes(Number(row.id)) || normalizar(row.categoria) === topico);
     if (topico === 'historia' && !rows.length) return { topico, status: 'disponivel', registros: [{ ...historia }], total: 1 };
     if (topico === 'cursos') {
         const turnos = /turnos?|periodos?/.test(normalizar(pergunta));
-        if (!turnos && !/etapas de ensino/.test(normalizar(pergunta)) && rows.some(row => Number(row.id) === 9)) {
+        if (!turnos && rows.some(row => Number(row.id) === 9)) {
             // A oferta detalhada foi fornecida pela responsável; não atribuí-la ao texto antigo do banco.
             return { topico, status: 'disponivel', registros: [{ titulo: 'Cursos oferecidos',
-                conteudo: cursos.etapas.map(x => '• ' + x).join('\n') + '\n\nItinerários (' + cursos.inicioItinerarios.toLowerCase() + '):\n' + cursos.itinerarios.map(x => '• ' + x).join('\n'),
+                conteudo: cursos.etapasTarde.map(x => '• ' + x).join('\n') + '\n\nItinerários (' + cursos.inicioItinerarios.toLowerCase() + '):\n' + cursos.itinerariosTarde.map(x => '• ' + x).join('\n'),
                 fonte: cursos.fonte }], total: 1, resposta_sucinta: true };
         }
         rows = rows.filter(row => normalizar(row.categoria) === 'cursos' || Number(row.id) === (turnos ? 13 : 9));

@@ -13,7 +13,11 @@
     "check:contents": "node scripts/check-contents.js",
     "build:netlify": "node scripts/build-netlify.js",
     "check:gemini": "node scripts/check-gemini.js",
-    "check:school-ai": "node scripts/check-school-ai.js"
+    "check:school-ai": "node scripts/check-school-ai.js",
+    "setup:local": "node scripts/setup-local.js",
+    "check:local": "node scripts/check-local.js",
+    "build:render": "npm run build:ui && node scripts/write-build-info.js",
+    "start:render": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -36,5 +40,8 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.15"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }

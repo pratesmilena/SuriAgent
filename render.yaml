@@ -1,0 +1,21 @@
+# Protótipo/apresentação no plano Free; contas e credenciais são configuradas no Render.
+services:
+  - type: web
+    name: suriagent
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm run build:render
+    startCommand: npm run start:render
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AI_PROVIDER
+        value: gemini
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SURI_GEMINI
+        sync: false

@@ -2,7 +2,9 @@
 
 Assistente virtual voltado ao **período da tarde** da Escola Estadual República do Suriname, com consulta de informações escolares e horários no Supabase, chat e login opcional com Google.
 
-**Site:** [suriagent.netlify.app](https://suriagent.netlify.app)
+**Publicação anterior:** [suriagent.netlify.app](https://suriagent.netlify.app). A versão nesse endereço depende do último deploy concluído e pode não conter o código atual da branch `main`.
+
+O repositório também inclui configuração para testes no **Render Free**, com interface e API no mesmo servidor. Nenhum novo domínio foi provisionado nesta entrega.
 
 ## Funcionalidades
 
@@ -30,7 +32,7 @@ O chat mantém a conversa na página; não grava histórico permanente. O login 
 | Gradiente | React, componente AnimatedGradient do Spell UI e esbuild |
 | API | Node.js 24 e Express 5 |
 | Dados escolares e autenticação | Supabase, PostgreSQL e Supabase Auth |
-| Publicação | Netlify, arquivos estáticos e Netlify Functions |
+| Publicação | Netlify Functions ou servidor Node.js no Render |
 | Templates locais | SQLite |
 | Testes | Node.js Test Runner e PGlite |
 
@@ -44,7 +46,7 @@ Requisitos: **Node.js 24**, npm e acesso ao projeto Supabase configurado.
 npm ci
 ```
 
-Crie `.env` a partir de `.env.example`, caso ainda não exista. Preencha as variáveis necessárias e inicie:
+Execute `npm run setup:local` para criar `.env` sem substituir um arquivo existente. Preencha as variáveis necessárias, confira com `npm run check:local` e inicie:
 
 ```sh
 npm start
@@ -56,6 +58,8 @@ No PowerShell, caso a política de scripts bloqueie `npm.ps1`, use:
 
 ```powershell
 npm.cmd ci
+npm.cmd run setup:local
+npm.cmd run check:local
 npm.cmd start
 ```
 
@@ -113,7 +117,9 @@ A API possui validação de entradas, limites de tempo e limite de requisições
 ## Testes e verificações
 
 ```sh
+npm run check:local
 npm test
+npm run build:render
 npm run build:netlify
 npm run check:school
 npm run check:contents
@@ -122,11 +128,17 @@ npm run check:school-ai  # três testes reais de interpretação
 npm run check:school-ai -- --web  # acrescenta uma pesquisa Google real
 ```
 
-A suíte atual contém **132 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
+A suíte atual contém **139 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
 
 As verificações de integração usam as credenciais do ambiente e apenas leem dados. `check:school` verifica uma turma/dia e o endereço; `check:contents` verifica os assuntos da base. Relatórios locais ficam em `.local/`, fora do Git.
 
 Também foram verificados com o Supabase real os 385 horários das 11 turmas e, após a correção de apresentação, as perguntas sobre eventos, projetos, localização e etapas de ensino. Os testes de provedores de IA usam respostas simuladas; não comprovam disponibilidade ou qualidade dos modelos em uma conta específica.
+
+## Publicação no Render Free
+
+O arquivo `render.yaml` configura um Web Service Node.js no plano Free. Build: `npm ci && npm run build:render`; início: `npm run start:render`; health check: `/healthz`. As variáveis são preenchidas no painel, fora do Git. O Supabase existente continua sendo usado, e os templates SQLite permanecem somente locais.
+
+O serviço gratuito suspende após inatividade e tem limites de uso/build. Não há garantia de disponibilidade permanente ou gratuidade ilimitada. Confira [o guia de publicação e as condições consultadas](docs/PUBLICAR_RENDER.md).
 
 ## Publicação no Netlify
 
@@ -158,6 +170,8 @@ Os módulos da API, consultas e configuração ficam na raiz. `dist/`, `public/g
 
 - [Perguntas frequentes e análise de acompanhamento](docs/PERGUNTAS_FREQUENTES.md)
 - [Gemini com a base escolar](docs/GEMINI_E_SUPABASE.md)
+- [Testar localmente no VS Code](docs/TESTAR_LOCALMENTE.md)
+- [Publicação no Render Free](docs/PUBLICAR_RENDER.md)
 - [Publicação no Netlify](docs/PUBLICAR_NETLIFY.md)
 - [Login Google e interface](docs/LOGIN_GOOGLE_E_INTERFACE.md)
 - [Base existente conhecimentos](docs/CORRIGIR_BASE_CONHECIMENTOS.md)

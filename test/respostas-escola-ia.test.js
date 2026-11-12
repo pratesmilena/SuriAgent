@@ -20,7 +20,7 @@ test('saída livre, índices inventados e falha do serviço não substituem a re
   assert.equal(await responderComBase('Resuma os projetos',base,{env,generate:async()=>({solucao})}),null);
  assert.equal(await responderComBase('Resuma os projetos',base,{env,generate:async()=>{throw new Error('cota')}}),null);
 });
-async function perguntar(pergunta,deps){let body;await criarPerguntaEscola(deps)({body:{pergunta}},{json(r){body=r;return this},status(){return this}});return body;}
+async function perguntar(pergunta,deps){let body;await criarPerguntaEscola({interpretacao:async()=>null,...deps})({body:{pergunta}},{json(r){body=r;return this},status(){return this}});return body;}
 test('rota integra a base à elaboração apenas em perguntas abertas',async()=>{
  let chamadas=0;const deps={env,conteudos:async()=>base[0],elaborar:async()=>{chamadas++;return 'Clube de música.'}};
  assert.equal((await perguntar('Resuma os projetos da escola',deps)).solucao,'Clube de música.');

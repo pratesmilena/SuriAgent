@@ -16,7 +16,7 @@ test('busca com linguagem livre encontra palavras-chave em qualquer categoria e 
  const r=await buscarConhecimentos('Quero saber sobre podcast na escola',banco(registros));assert.deepEqual(r.registros.map(r=>r.id),[15]);
  assert.equal((await buscarConhecimentos('Qual é a escola?',banco(registros))).registros.length,0);
 });
-async function perguntar(pergunta,deps){let body;await criarPerguntaEscola(deps)({body:{pergunta}},{status(){return this},json(x){body=x;return this}});return body;}
+async function perguntar(pergunta,deps){let body;await criarPerguntaEscola({interpretacao:async()=>null,...deps})({body:{pergunta}},{status(){return this},json(x){body=x;return this}});return body;}
 test('rota não usa FAQ genérica para eletivas nem envia dados ausentes ao Gemini',async()=>{
  const r=await perguntar('Quais eletiva tem na escola?',{eletivas:async()=>({registros:[]}),buscar:p=>buscarConhecimentos(p,banco(registros)),conteudos:()=>assert.fail('Não deve listar FAQ'),elaborar:()=>assert.fail('Não deve gerar sem registros')});
  assert.match(r.solucao,/Não encontrei eletivas acessíveis/);assert.doesNotMatch(r.solucao,/Ensino Médio/);

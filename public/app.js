@@ -183,13 +183,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Não enviar perguntas sobre dados oficiais a um modelo sem consultar a base.
             const schoolResponse = await fetch('/api/escola/perguntar', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pergunta: text }), signal: AbortSignal.timeout(15000)
+                body: JSON.stringify({ pergunta: text }), signal: AbortSignal.timeout(30000)
             });
             const schoolData = await schoolResponse.json();
             if (!schoolResponse.ok) throw new Error(schoolData.erro || 'Não foi possível consultar os dados escolares.');
             if (schoolData.handled) {
                 removeElement(loadingId);
-                addMessageToChat(schoolData.solucao, 'ai', true);
+                addMessageToChat(schoolData.solucao, 'ai', true, schoolData.pesquisaGoogle?.renderedContent);
                 return;
             }
             // Reaproveitando a rota /api/diagnosticar, enviando o texto como logErro
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function addMessageToChat(content, sender, plainText = false) {
+    function addMessageToChat(content, sender, plainText = false, googleSearchHtml = null) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${sender}`;
         
@@ -238,6 +238,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (plainText) contentDiv.classList.add('school-answer');
+        if (sender === 'ai' && typeof googleSearchHtml === 'string' && googleSearchHtml) {
+            const attribution = document.createElement('iframe');
+            attribution.title = 'Sugestões e atribuição da pesquisa no Google';
+            attribution.className = 'google-search-attribution';
+            attribution.setAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox');
+            attribution.referrerPolicy = 'no-referrer';
+            attribution.srcdoc = googleSearchHtml;
+            contentDiv.append(attribution);
+        }
         msgDiv.appendChild(contentDiv);
         chatHistory.appendChild(msgDiv);
         scrollToBottom();

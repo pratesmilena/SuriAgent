@@ -8,8 +8,9 @@ Assistente virtual voltado ao **período da tarde** da Escola Estadual Repúblic
 
 - Consulta de aulas por turma e dia, de segunda a sexta-feira, ou pela semana completa. As turmas são carregadas do Supabase.
 - Chat com perguntas sobre horários, localização, história, cursos, projetos, ambiente escolar, eventos, espaços, perguntas frequentes, professores e disciplinas.
-- Respostas escolares obtidas pela API do projeto. Perguntas diretas usam o banco; pedidos explícitos de resumo, explicação ou comparação podem usar o Gemini para selecionar trechos relevantes dos conteúdos autorizados. Sem chave, dados relevantes ou disponibilidade do serviço, permanece a resposta direta.
-- Exibição do campo `conteudo` da base `conhecimentos`, preservando listas, parágrafos e quebras de linha, sem acrescentar títulos, perguntas duplicadas ou fontes visíveis.
+- Interpretação de formulações variadas com Gemini: o servidor valida a seleção de conteúdos e as consultas a horários, turmas, docentes e eletivas. Perguntas ambíguas pedem esclarecimento; consultas exatas mantêm o caminho direto. Sem disponibilidade da IA, permanecem as regras anteriores.
+- Exibição dos conteúdos escolares sem títulos, perguntas duplicadas ou fontes extras. Quando solicitada uma seleção com IA, a resposta é montada com trechos do banco, sem redação de fatos novos.
+- Pesquisa Google secundária para informações ausentes na base, com identificação da origem externa, fontes e sugestões de pesquisa. Exige modelo/cota compatíveis; essa nova chamada ainda precisa de validação ao vivo após publicação.
 - Consulta de eletivas pelos vínculos docentes e pela disciplina `ELETIVA` da grade, com professores e turmas. Os temas das eletivas não são inferidos quando ausentes do cadastro.
 - Perguntas frequentes com oito sugestões úteis e atalhos para consultar o chat. São sugestões editoriais, sem ranking de uso ou coleta de conversas.
 - Busca de perguntas escolares não reconhecidas por termos do título, conteúdo e palavras-chave, sem listar uma FAQ genérica.
@@ -117,9 +118,11 @@ npm run build:netlify
 npm run check:school
 npm run check:contents
 npm run check:gemini  # uma chamada real ao Gemini, se a chave estiver configurada
+npm run check:school-ai  # três testes reais de interpretação
+npm run check:school-ai -- --web  # acrescenta uma pesquisa Google real
 ```
 
-A suíte atual contém **112 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
+A suíte atual contém **132 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
 
 As verificações de integração usam as credenciais do ambiente e apenas leem dados. `check:school` verifica uma turma/dia e o endereço; `check:contents` verifica os assuntos da base. Relatórios locais ficam em `.local/`, fora do Git.
 

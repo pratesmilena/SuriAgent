@@ -1,50 +1,49 @@
-# Gemini com os conteúdos escolares
+# Interpretação escolar e pesquisa com Gemini
 
-A integração existente usa HTML/CSS/JavaScript no navegador e Node.js/Express no servidor. No Netlify, a mesma API roda como Function. Não foi criado um segundo backend nem alterado o banco.
+A aplicação usa HTML/CSS/JavaScript no navegador, Node.js/Express no servidor e Netlify Functions na publicação. As credenciais permanecem no servidor; nenhuma tabela ou política foi criada para esta integração.
 
-## Fluxo implementado
+## Fluxo atual
 
-1. O navegador envia `{ pergunta }` a `/api/escola/perguntar`.
-2. O backend identifica o assunto e consulta as tabelas existentes com as permissões do Supabase.
-3. Perguntas diretas, horários, professores e localização continuam usando as respostas atuais. Títulos/fontes não são acrescentados aos textos de conhecimentos.
-4. Pedidos explícitos como “Resuma os projetos da escola” ou “Compare os projetos e eventos da escola” podem usar Gemini quando todos os tópicos consultados têm registros acessíveis em `conhecimentos`.
-5. O servidor separa os conteúdos em parágrafos e envia somente os trechos recuperados e a pergunta, sem credenciais, dados do perfil Google ou acesso SQL.
-6. Gemini retorna índices dos trechos relevantes. O servidor valida todos os índices e monta a resposta com os textos originais, sem permitir frases livres do modelo. Trata-se de síntese extrativa: seleciona/ordena parágrafos, sem inferências ou redação de fatos novos.
-7. Falta de chave, cota, timeout de oito segundos ou resposta inválida preservam a resposta direta do banco. Conteúdo ausente não é completado por conhecimento externo.
+1. A pergunta chega a `POST /api/escola/perguntar`.
+2. Pedidos explícitos de FAQ recebem as sugestões editoriais. Manhã/matutino recebem o aviso de indisponibilidade. Endereço, turma/dia completos e eletivas reconhecidas continuam usando suas consultas diretas.
+3. Para as outras formulações, com Gemini configurado, o backend lê os conteúdos acessíveis de `conhecimentos` e os catálogos da grade da tarde. O modelo recebe esses dados e a pergunta, sem credenciais ou perfil do usuário.
+4. Gemini retorna um plano JSON: selecionar conteúdos, consultar horários, docentes, eletivas, turmas ou endereço; pedir esclarecimento; informar ausência de dados; ou indicar que a dúvida não é escolar. O servidor valida tipos, índices, turma, dia, número de aula e nomes nos catálogos. O modelo não escreve nem executa SQL.
+5. A resposta usa somente os registros selecionados ou o resultado das funções de consulta existentes. A seleção de parágrafos e itens de lista também é validada: não são aceitas frases livres como fatos escolares do banco.
+6. Sem chave, com cota excedida, timeout ou plano inválido, as regras de busca anteriores continuam disponíveis. Uma pergunta ambígua não recebe uma turma inventada: o assistente pede esclarecimento.
+7. Se uma informação escolar não estiver na base, o backend pode ativar Google Search pelo Gemini. Essa resposta é identificada como externa e mostra fontes. Falha da pesquisa ou evidência insuficiente mantém a mensagem de informação não encontrada.
 
-Essa busca usa as categorias e regras já implementadas; não é busca vetorial nem compreensão irrestrita de qualquer pergunta. Documentos e pergunta são tratados como dados, não comandos. A seleção pelo modelo pode ser imperfeita, mas não pode introduzir texto fora dos trechos fornecidos. A consulta ao banco continua protegida por RLS e grants.
+A interpretação aceita sinônimos, abreviações e algumas grafias informais, mas não garante compreensão de toda formulação possível. Não é uma busca vetorial. O contexto está limitado a 80 documentos/32 mil caracteres, com paginação de até 10 mil registros para os catálogos. O sistema não usa histórico anterior para resolver pronomes ambíguos. Hoje/amanhã usam a referência de data de São Paulo, sem presumir calendário de feriados ou dias letivos.
 
-## Configurar a conta
+## Google Search quando falta informação
 
-1. Acesse https://aistudio.google.com/apikey com sua própria conta Google e crie uma chave vinculada a um projeto elegível.
-2. Localmente, salve `SURI_GEMINI` (ou o nome anterior `GEMINI_API_KEY`) em `.env`, já ignorado pelo Git. No ambiente em nuvem, use as configurações seguras de variáveis/segredos.
-3. Configure `GEMINI_MODEL` com um modelo de geração de texto disponível nessa conta. O valor de exemplo do repositório não comprova acesso ao modelo: confirme no AI Studio.
-4. No Netlify, configure `SURI_GEMINI` (ou o nome anterior `GEMINI_API_KEY`) e `GEMINI_MODEL` para a execução das Functions, no contexto de produção, e faça um novo deploy. O `.env` local não é transferido ao Netlify.
-5. `AI_PROVIDER=gemini` escolhe Gemini para o chat geral; a síntese escolar usa Gemini especificamente. Outros serviços do chat geral continuam disponíveis.
+A pesquisa usa a ferramenta nativa `googleSearch` da API Gemini. O prompt identifica a escola da Rua Antônio João de Medeiros, 810, Itaim Paulista, São Paulo, e prioriza fontes oficiais. Não é suficiente o modelo dizer que pesquisou: o servidor exige metadados de grounding, segmentos apoiados em fontes HTTP/HTTPS e identificação da mesma escola/localidade. Afirmações sem suporte são descartadas. Essa validação reduz erros de atribuição, mas fontes externas podem estar desatualizadas e ainda precisam de avaliação humana.
 
-Não envie chaves no chat, em conhecimentos, em capturas de tela nem no GitHub. A chave publicável do Supabase é uma credencial distinta da chave secreta Gemini. Não é necessário criar tabelas ou alterar políticas para ativar este recurso.
+O texto começa indicando “Informação encontrada em pesquisa no Google, fora da base escolar” e inclui URLs das fontes. As sugestões fornecidas pelo Google, quando presentes, são exibidas em iframe isolado, sem permissão para executar scripts ou acessar a página principal. As respostas do Supabase continuam sem fontes/títulos extras. Nada encontrado na web é gravado automaticamente no banco.
 
-## Verificar
+A busca não é feita para substituir turma/dia ausentes, para dados da manhã, contatos pessoais ou credenciais. Falha de permissão/conexão do banco não é apresentada como ausência de informação para contornar o acesso. A chave e o modelo precisam permitir pesquisa Google. Esse recurso possui cotas e condições próprias, que podem envolver cobrança; confira o projeto Google antes de usá-lo em produção. A autorização no chat não altera o plano do provedor nem os créditos do Netlify.
+
+Referências técnicas conferidas:
+
+- https://ai.google.dev/gemini-api/docs/google-search
+- https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta — `Tool.googleSearch`, `GroundingMetadata.groundingChunks`, `groundingSupports` e `searchEntryPoint`.
+
+## Configurar e verificar
+
+1. Crie uma chave da sua conta em https://aistudio.google.com/apikey.
+2. Salve `SURI_GEMINI` (ou `GEMINI_API_KEY`) no `.env` local ou nas configurações seguras da hospedagem. Se ambos estiverem preenchidos, `SURI_GEMINI` tem prioridade. O nome não muda a sensibilidade do valor nem as regras da hospedagem.
+3. Configure `GEMINI_MODEL` com um modelo de geração de texto disponível na conta, com JSON e Google Search quando esse recurso for utilizado. O valor de exemplo do repositório não comprova acesso ao modelo.
+4. No Netlify, as variáveis precisam estar disponíveis à execução das Functions. Um novo deploy publica o código; salvar a variável local não a transfere à hospedagem.
+5. `AI_PROVIDER` define o serviço do chat geral. Interpretação, seleção escolar e pesquisa Google usam Gemini especificamente.
 
 ```sh
 npm test
 npm run build:netlify
 npm run check:school
 npm run check:gemini
+npm run check:school-ai
+npm run check:school-ai -- --web
 ```
 
-`check:gemini` faz uma chamada real e informa apenas status, modelo e presença de texto. Código 2 significa chave ausente; código 1 indica falha de chave, modelo, rede ou cota. Não imprime chave nem a resposta do provedor. A chamada pode consumir a cota da conta. A camada gratuita possui limites e depende do modelo/projeto; não há promessa de uso ilimitado ou de ausência de cobrança em contas com faturamento habilitado.
+Os três últimos comandos podem consumir a cota da conta. `check:gemini` faz uma chamada simples; `check:school-ai` testa três interpretações reais e só testa pesquisa Google se `--web` for informado. Código 2 significa chave ausente, e código 1 informa falha/resultado não confirmado. Chaves e respostas privadas do provedor não são impressas.
 
-Teste também “Resuma os projetos da escola”, “Quais projetos são desenvolvidos na escola?”, “Onde fica a escola?” e uma consulta de turma/dia. As três últimas mantêm a resposta direta existente. Mesmo com uma chave válida, não é possível garantir ausência de falhas de serviços externos.
-
-O nome alternativo não altera a sensibilidade do valor nem as regras da hospedagem. Se ambos estiverem preenchidos, `SURI_GEMINI` tem prioridade. O valor continua sendo usado exclusivamente no servidor. Se o painel exigir marcação de segredo, mantenha essa proteção; não há garantia de que a troca de nome elimine a restrição.
-
-## Eletivas e perguntas não reconhecidas
-
-“Quais eletiva tem na escola?” e “Tem disciplinas optativas?” são direcionadas ao cadastro de professores/disciplinas e à grade da tarde. A disciplina ELETIVA retorna os professores e as turmas correspondentes, agrupando aulas repetidas. A base atual não informa os nomes dos temas dessas eletivas: o agente não os inventa nem equipara clubes juvenis ou itinerários às eletivas.
-
-Perguntas escolares sem um tópico reconhecido consultam termos específicos do título, categoria, palavras-chave e conteúdo de conhecimentos. Termos genéricos como escola são descartados. O Gemini pode selecionar trechos dentre os registros encontrados, mesmo quando a pergunta não contém “resuma”. Nenhum registro relevante significa resposta de informação não encontrada, sem recorrer à lista inteira de FAQ. A busca é textual, não vetorial; sinônimos não cadastrados ainda podem precisar de palavras-chave melhores.
-
-## Gestores e variações da pergunta
-
-A busca reconhece termos de gestão, diretora/diretor, vice-direção, coordenação e expressões como “quem manda na escola?”. O nome da escola não precisa ser repetido em perguntas sobre cargos da gestão. Os nomes vêm do cadastro publicado, sem serem fixados no código. Quando há Gemini disponível, ele pode selecionar somente o parágrafo relacionado ao cargo solicitado; sem IA, a resposta retorna o cadastro encontrado. A busca textual e seus sinônimos continuam sendo o primeiro passo: não há garantia de compreensão de qualquer formulação. O turno da manhã permanece indisponível.
+Testes locais cobrem planos inválidos, índices inexistentes, fontes inválidas, ausência de grounding, escola diferente, baixa confiança, manhã, indisponibilidade e preservação das respostas existentes. A interpretação também foi avaliada com seis perguntas informais, usando Supabase real e Gemini por meio do backend já publicado. Isso não comprova que o site antigo tenha recebido o código novo. A pesquisa Google nova foi validada por testes simulados; não houve chamada real com a ferramenta de pesquisa porque a chave está somente no Netlify e a versão nova ainda depende de deploy.

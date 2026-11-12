@@ -98,3 +98,18 @@ test('rota de IA também informa indisponibilidade da manhã sem chamar provedor
  let body;await criarDiagnostico(()=>assert.fail('Não deve enviar manhã à IA'))({body:{logErro:'Quais são as aulas do período matutino?'}},{json(x){body=x;return this}});
  assert.match(body.solucao,/manhã ainda não estão disponíveis/);
 });
+
+test('modo JSON é solicitado apenas quando a operação do Gemini requer estrutura',async()=>{
+ await generateAnswer({provider:'gemini',message:'Interprete a pergunta',env:{SURI_GEMINI:'test-only'},jsonOutput:true,fetchImpl:async(url,options)=>{
+  assert.equal(JSON.parse(options.body).generationConfig.responseMimeType,'application/json');
+  return{ok:true,json:async()=>({candidates:[{content:{parts:[{text:'{"tipo":"turmas"}'}]}}]})};
+ }});
+});
+
+test('Google Search usa ferramenta nativa no servidor e preserva metadados de evidência',async()=>{
+ const grounding={groundingChunks:[{web:{uri:'https://example.org',title:'Teste'}}],groundingSupports:[]};
+ const r=await generateAnswer({provider:'gemini',message:'Pesquisa pública da escola',env:{SURI_GEMINI:'private-test'},webSearch:true,fetchImpl:async(url,options)=>{
+  const body=JSON.parse(options.body);assert.deepEqual(body.tools,[{googleSearch:{}}]);assert.equal(body.generationConfig.responseMimeType,undefined);assert.ok(!options.body.includes('private-test'));
+  return{ok:true,json:async()=>({candidates:[{content:{parts:[{text:'Resultado de teste'}]},groundingMetadata:grounding}]})};
+ }});assert.deepEqual(r.grounding,grounding);
+});

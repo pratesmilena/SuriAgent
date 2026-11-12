@@ -22,7 +22,7 @@ function publicConfig(env = process.env) {
 }
 
 function failure(message, status) { return Object.assign(new Error(message), { status }); }
-async function generateAnswer({ provider, message, env = process.env, fetchImpl = fetch, systemPrompt = SYSTEM_PROMPT, timeoutMs = 45000 }) {
+async function generateAnswer({ provider, message, env = process.env, fetchImpl = fetch, systemPrompt = SYSTEM_PROMPT, timeoutMs = 45000, jsonOutput = false, webSearch = false }) {
     const id = provider || env.AI_PROVIDER || 'gemini';
     if (!Object.hasOwn(PROVIDERS, id) || PROVIDERS[id].browser) throw failure('Selecione um provedor de IA válido para o servidor.', 400);
     const info = PROVIDERS[id];
@@ -36,7 +36,8 @@ async function generateAnswer({ provider, message, env = process.env, fetchImpl 
     const body = gemini ? {
         systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: 'user', parts: [{ text: message }] }],
-        generationConfig: { maxOutputTokens: 2048 }
+        generationConfig: { maxOutputTokens: 2048, ...(jsonOutput && !webSearch ? { responseMimeType: 'application/json' } : {}) },
+        ...(webSearch ? { tools: [{ googleSearch: {} }] } : {})
     } : {
         model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }],
         max_tokens: 2048, ...(id === 'openrouter' ? { provider: { allow_fallbacks: false } } : {})
@@ -62,7 +63,8 @@ async function generateAnswer({ provider, message, env = process.env, fetchImpl 
         ? data.candidates?.[0]?.content?.parts?.filter(part => !part.thought && typeof part.text === 'string').map(part => part.text).join('\n')
         : data.choices?.[0]?.message?.content;
     if (typeof content !== 'string' || !content.trim()) throw failure('O modelo não retornou uma resposta de texto. Tente novamente.', 502);
-    return { solucao: content.trim(), provider: id, model: data.model || data.modelVersion || model };
+    return { solucao: content.trim(), provider: id, model: data.model || data.modelVersion || model,
+        ...(gemini && webSearch ? { grounding: data.candidates?.[0]?.groundingMetadata || null } : {}) };
 }
 
 function criarDiagnostico(generate = generateAnswer) {

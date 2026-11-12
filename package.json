@@ -12,7 +12,8 @@
     "prestart": "npm run build:ui",
     "check:contents": "node scripts/check-contents.js",
     "build:netlify": "node scripts/build-netlify.js",
-    "check:gemini": "node scripts/check-gemini.js"
+    "check:gemini": "node scripts/check-gemini.js",
+    "check:school-ai": "node scripts/check-school-ai.js"
   },
   "keywords": [],
   "author": "",

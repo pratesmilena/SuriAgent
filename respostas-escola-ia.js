@@ -20,7 +20,7 @@ async function responderComBase(pergunta, resultados, { env = process.env, gener
     }
     if (!trechos.length) return null;
     try {
-        const resposta = await generate({ provider: 'gemini', env, systemPrompt: INSTRUCOES, timeoutMs: 8000,
+        const resposta = await generate({ provider: 'gemini', env, jsonOutput: true, systemPrompt: INSTRUCOES, timeoutMs: 8000,
             message: JSON.stringify({ pergunta, documentos: trechos.map((conteudo, id) => ({ id, conteudo })) }) });
         const selecao = JSON.parse(resposta.solucao);
         if (!Array.isArray(selecao.trechos) || !selecao.trechos.length || selecao.trechos.length > trechos.length) return null;

@@ -4,6 +4,8 @@ const { buscarConhecimentos, perguntaEletivas, perguntaGestao } = require('./bus
 const { consultarEletivas } = require('./professores-escola');
 const { somenteOutroPeriodo, AVISO_MANHA } = require('./escopo-tarde');
 const { pedidoListaFaq, respostaListaFaq } = require('./perguntas-frequentes');
+const { interpretarPerguntaEscola } = require('./interpretacao-escola');
+const { buscarNaWeb } = require('./pesquisa-web-escola');
 const cadastro = require('./config/escola.json');
 const { erroConsulta } = require('./erros-consulta');
 const { identificarTopicos, consultarConteudos, formatarConteudos } = require('./conteudos-escola');
@@ -37,19 +39,72 @@ function informacoesEscola(env = process.env) {
     }
     return { nome: cadastro.nome, endereco, fonte, origem: cadastro.origem, localizacaoConfirmada: !!endereco };
 }
-function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consultarLocalizacao, listar = listarCatalogoHorarios, conteudos = consultarConteudos, elaborar = responderComBase, buscar = buscarConhecimentos, eletivas = consultarEletivas, env = process.env } = {}) {
+function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consultarLocalizacao, listar = listarCatalogoHorarios, conteudos = consultarConteudos, elaborar = responderComBase, buscar = buscarConhecimentos, eletivas = consultarEletivas, interpretacao = interpretarPerguntaEscola, pesquisar = buscarNaWeb, env = process.env } = {}) {
     return async (req, res) => {
         const { pergunta } = req.body || {};
         if (typeof pergunta !== 'string' || !pergunta.trim() || pergunta.length > 10000) {
             return res.status(400).json({ erro: 'Informe uma pergunta de até 10.000 caracteres.' });
         }
+        async function responderSemInformacao(mensagem) {
+            const pesquisa = await pesquisar(pergunta, { env });
+            return res.json({ handled: true, solucao: pesquisa?.solucao || mensagem, formato: 'texto',
+                ...(pesquisa ? { pesquisaGoogle: pesquisa.pesquisaGoogle } : {}) });
+        }
         if (pedidoListaFaq(pergunta)) return res.json({ handled: true, solucao: respostaListaFaq(), formato: 'texto' });
         if (somenteOutroPeriodo(pergunta)) return res.json({ handled: true, solucao: AVISO_MANHA, formato: 'texto' });
         const intencao = interpretar(pergunta);
         let topicos = identificarTopicos(pergunta);
+        let eletivasInterpretadas = false;
+        const consultaExata = intencao.localizacao || intencao.listaTurmas || perguntaEletivas(pergunta)
+            || (intencao.horario && intencao.turmas.length === 1 && intencao.dias.length === 1);
+        if (!consultaExata) {
+            let plano = null;
+            try { plano = await interpretacao(pergunta, { env }); } catch {}
+            if (plano?.tipo === 'manha') return res.json({ handled: true, solucao: AVISO_MANHA, formato: 'texto' });
+            if (plano?.tipo === 'esclarecer') {
+                const mensagens = {
+                    turma: 'Qual é a sua turma? Use o nome da turma cadastrado na aba Horários de aula.',
+                    dia: 'Qual dia da semana você quer consultar? Você também pode pedir a semana completa.',
+                    aula: 'Qual número da aula você quer consultar?',
+                    assunto: 'Você pode explicar um pouco melhor sua pergunta ou indicar o assunto da escola que deseja consultar?'
+                };
+                return res.json({ handled: true, solucao: mensagens[plano.alvo] || mensagens.assunto, formato: 'texto' });
+            }
+            if (plano?.tipo === 'sem_informacao') return responderSemInformacao('Não encontrei essa informação nos dados publicados para o período da tarde. Confirme com a secretaria ou coordenação.');
+            if (plano?.tipo === 'conhecimentos') {
+                let solucao = plano.resultado.registros.map(row => row.conteudo).join('\n\n');
+                const resumo = await elaborar(pergunta, [plano.resultado], { env, permitirPerguntaDireta: true });
+                if (resumo) solucao = resumo;
+                return res.json({ handled: true, solucao, formato: 'texto', fonte: 'base-escolar' });
+            }
+            if (plano?.tipo === 'professores') {
+                try {
+                    const resultado = await conteudos('professores', plano.busca);
+                    if (plano.turma) {
+                        resultado.registros = resultado.registros.filter(row => row.origens?.some(o => o.turmas?.includes(plano.turma)));
+                        resultado.total = resultado.registros.length;
+                    }
+                    return res.json({ handled: true, solucao: formatarConteudos(resultado), formato: 'texto', fonte: 'base-escolar' });
+                } catch (error) {
+                    const falha = erroConsulta(error);
+                    return res.status(falha.status).json({ handled: true, erro: falha.mensagem, codigo: falha.codigo });
+                }
+            }
+            if (plano?.tipo === 'horarios') {
+                Object.assign(intencao, { horario: true, listaTurmas: false, localizacao: false,
+                    turmas: [plano.turma], dias: [plano.dia], numeroAula: plano.numeroAula });
+                topicos = [];
+            }
+            if (plano?.tipo === 'turmas') { Object.assign(intencao, { listaTurmas: true, localizacao: false }); topicos = []; }
+            if (plano?.tipo === 'localizacao') { Object.assign(intencao, { localizacao: true, horario: false }); topicos = []; }
+            if (plano?.tipo === 'eletivas') {
+                eletivasInterpretadas = true;
+                if (plano.turma) intencao.turmas = [plano.turma];
+            }
+        }
         if (intencao.turmas.length && intencao.dias.length) topicos = topicos.filter(topico => topico !== 'professores');
         if (topicos.includes('professores')) topicos = topicos.filter(topico => topico !== 'cursos');
-        const perguntaSobreEletivas = perguntaEletivas(pergunta);
+        const perguntaSobreEletivas = eletivasInterpretadas || perguntaEletivas(pergunta);
         if (perguntaSobreEletivas) {
             try {
                 const resultado = await eletivas(pergunta);
@@ -73,7 +128,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
             try {
                 const resultado = await buscar(pergunta);
                 let solucao = resultado.registros.map(row => row.conteudo).join('\n\n');
-                if (!solucao) solucao = 'Não encontrei informação publicada que responda a essa pergunta. Você pode reformular ou confirmar com a secretaria.';
+                if (!solucao) return responderSemInformacao('Não encontrei informação publicada que responda a essa pergunta. Você pode reformular ou confirmar com a secretaria.');
                 else {
                     const resumo = await elaborar(pergunta, [resultado], { env, permitirPerguntaDireta: true });
                     if (resumo) solucao = resumo;
@@ -101,11 +156,19 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
         }
         const resultados = [];
         for (const topico of topicos) {
-            try { const resultado = await conteudos(topico, pergunta); resultados.push(resultado); partes.push(formatarConteudos(resultado)); }
+            try {
+                const resultado = await conteudos(topico, pergunta);
+                resultados.push(resultado);
+                if (resultado.registros.length) partes.push(formatarConteudos(resultado));
+            }
             catch (error) {
                 const falha = erroConsulta(error);
                 return res.status(falha.status).json({ handled: true, erro: falha.mensagem, codigo: falha.codigo });
             }
+        }
+        if (!partes.length && resultados.length && resultados.every(r => !r.registros.length)
+            && !intencao.listaTurmas && !intencao.turmas.length) {
+            return responderSemInformacao(resultados.map(formatarConteudos).join('\n\n'));
         }
         if (perguntaAberta(pergunta) && !intencao.horario && !intencao.localizacao && !intencao.listaTurmas
             && resultados.length && resultados.every(r => r.origem === 'conhecimentos' && r.status === 'disponivel')) {

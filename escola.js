@@ -2,7 +2,7 @@ const { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios } = requ
 const { responderComBase, perguntaAberta } = require('./respostas-escola-ia');
 const { buscarConhecimentos, perguntaEletivas } = require('./busca-conhecimentos');
 const { consultarEletivas } = require('./professores-escola');
-const { somenteOutroPeriodo } = require('./escopo-tarde');
+const { somenteOutroPeriodo, AVISO_MANHA } = require('./escopo-tarde');
 const { pedidoListaFaq, respostaListaFaq } = require('./perguntas-frequentes');
 const cadastro = require('./config/escola.json');
 const { erroConsulta } = require('./erros-consulta');
@@ -44,7 +44,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
             return res.status(400).json({ erro: 'Informe uma pergunta de até 10.000 caracteres.' });
         }
         if (pedidoListaFaq(pergunta)) return res.json({ handled: true, solucao: respostaListaFaq(), formato: 'texto' });
-        if (somenteOutroPeriodo(pergunta)) return res.json({ handled: true, solucao: 'O Suri está configurado para atender ao período da tarde. Para informações da manhã, consulte a secretaria.', formato: 'texto' });
+        if (somenteOutroPeriodo(pergunta)) return res.json({ handled: true, solucao: AVISO_MANHA, formato: 'texto' });
         const intencao = interpretar(pergunta);
         let topicos = identificarTopicos(pergunta);
         if (intencao.turmas.length && intencao.dias.length) topicos = topicos.filter(topico => topico !== 'professores');

@@ -119,7 +119,7 @@ npm run check:contents
 npm run check:gemini  # uma chamada real ao Gemini, se a chave estiver configurada
 ```
 
-A suíte atual contém **107 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
+A suíte atual contém **109 testes**: contratos HTTP, interpretação das perguntas, consultas Supabase, apresentação das respostas, autenticação, configuração, publicação Netlify e scripts SQL executados em PostgreSQL local por PGlite.
 
 As verificações de integração usam as credenciais do ambiente e apenas leem dados. `check:school` verifica uma turma/dia e o endereço; `check:contents` verifica os assuntos da base. Relatórios locais ficam em `.local/`, fora do Git.
 
@@ -167,6 +167,6 @@ O pacote declara licença ISC. Bootstrap, React, Supabase e os demais componente
 
 ## Escopo do período da tarde
 
-Consultas de professores e eletivas usam os vínculos da grade da tarde. Textos gerais que misturam turnos não são apresentados como se fossem exclusivos da tarde: a descrição de horários é limitada ao trecho confirmado da tarde e os totais de matrículas do censo não são atribuídos a esse turno. História e endereço continuam disponíveis como informações gerais. A oferta confirmada para a tarde inclui Ensino Médio e Técnico em Desenvolvimento de Sistemas; outras ofertas não são presumidas para esse período. Nenhum registro da manhã foi excluído do banco.
+Consultas de professores e eletivas usam os vínculos da grade da tarde. Textos gerais que misturam turnos não são apresentados como se fossem exclusivos da tarde: a descrição de horários é limitada ao trecho confirmado da tarde e os totais de matrículas do censo não são atribuídos a esse turno. História e endereço continuam disponíveis como informações gerais. A oferta confirmada para a tarde inclui Ensino Médio e Técnico em Desenvolvimento de Sistemas; outras ofertas não são presumidas para esse período. Perguntas sobre manhã ou período matutino, inclusive comparações com a tarde, recebem um aviso de informação ainda não disponível, sem consultar o banco ou o Gemini. Nenhum registro da manhã foi excluído do banco.
 
 Se o site apresentar uma resposta antiga após uma atualização, confira o deploy de produção no Netlify e a branch conectada (`main`). Execute um novo deploy da versão mais recente e confira `GET /api/status`: o campo `revisao` identifica o commit incluído no build. Atualizar o navegador não substitui um deploy da API.

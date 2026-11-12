@@ -1,3 +1,4 @@
+const { somenteOutroPeriodo, AVISO_MANHA } = require('./escopo-tarde');
 const { SYSTEM_PROMPT } = require('./public/ai-client');
 
 const PROVIDERS = Object.freeze({
@@ -70,6 +71,7 @@ function criarDiagnostico(generate = generateAnswer) {
         if (typeof logErro !== 'string' || !logErro.trim() || logErro.length > 10000) {
             return res.status(400).json({ erro: 'Informe uma mensagem de até 10.000 caracteres.' });
         }
+        if (somenteOutroPeriodo(logErro)) return res.json({ solucao: AVISO_MANHA });
         try {
             // A escolha pertence à configuração do servidor, não ao corpo da requisição.
             const resultado = await generate({ message: logErro.trim() });

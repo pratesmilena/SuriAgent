@@ -93,3 +93,8 @@ test('nome alternativo SURI_GEMINI funciona no servidor sem expor valor na confi
  const config=publicConfig(env);assert.equal(config.providers.find(x=>x.id==='gemini').available,true);
  assert.doesNotMatch(JSON.stringify(config),/alias-private|old-private/);
 });
+
+test('rota de IA também informa indisponibilidade da manhã sem chamar provedor',async()=>{
+ let body;await criarDiagnostico(()=>assert.fail('Não deve enviar manhã à IA'))({body:{logErro:'Quais são as aulas do período matutino?'}},{json(x){body=x;return this}});
+ assert.match(body.solucao,/manhã ainda não estão disponíveis/);
+});

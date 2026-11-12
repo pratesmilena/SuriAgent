@@ -1,14 +1,17 @@
 const { conteudoDaTarde } = require('./escopo-tarde');
 const { getSupabase } = require('./supabase');
 const normalizar = texto => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-const stop = new Set('a as o os um uma uns umas de da das do dos em na nas no nos e ou que qual quais quem como quando onde por para porque tem ter temos ha existe existem sao e eh me diga pode poderia gostaria saber escola escolar escolas suriname republica oferecido oferecidos oferecida oferecidas oferece oferecem disponivel disponiveis aluno alunos voce voces por favor sobre'.split(' '));
+const stop = new Set('a as o os um uma uns umas de da das do dos em na nas no nos e ou que qual quais quem como quando onde por para porque tem ter temos ha existe existem sao e eh me diga pode poderia gostaria saber escola escolar escolas suriname republica oferecido oferecidos oferecida oferecidas oferece oferecem disponivel disponiveis aluno alunos voce voces por favor sobre tarde turno periodo nome nomes'.split(' '));
 const tokens = texto => normalizar(texto).split(/[^a-z0-9]+/).filter(x => x.length > 2 && !stop.has(x)).map(x => x.endsWith('s') ? x.slice(0, -1) : x);
+function perguntaGestao(pergunta) {
+    return /\b(?:gestor(?:es)?|gestora?s?|gestao|diretor(?:a|es|as)?|vice[ -]diretor(?:a|es|as)?|coordenador(?:a|es|as)?|coordenacao|direcao)\b|quem (?:manda|dirige|administra)|responsavel pela escola/.test(normalizar(pergunta));
+}
 function perguntaEletivas(pergunta) {
     return /\beletivas?\b|(?:disciplinas?|atividades?)\s+(?:optativas?|eletivas?)/.test(normalizar(pergunta));
 }
 async function buscarConhecimentos(pergunta, source = getSupabase()) {
     const eletivas = perguntaEletivas(pergunta);
-    const termos = eletivas ? ['eletiva', 'optativa'] : [...new Set(tokens(pergunta))];
+    const termos = eletivas ? ['eletiva', 'optativa'] : [...new Set([...tokens(pergunta), ...(perguntaGestao(pergunta) ? ['gestao', 'gestor', 'gestore', 'direcao', 'coordenacao'] : [])])];
     if (!termos.length) return { origem: 'conhecimentos', status: 'sem_conteudo_publicado', registros: [], total: 0 };
     const rows = [];
     for (let inicio = 0; inicio < 10000; inicio += 1000) {
@@ -29,4 +32,4 @@ async function buscarConhecimentos(pergunta, source = getSupabase()) {
     const registros = classificados.slice(0, 3).map(({row}) => row);
     return { origem: 'conhecimentos', status: registros.length ? 'disponivel' : 'sem_conteudo_publicado', registros, total: classificados.length };
 }
-module.exports = { buscarConhecimentos, perguntaEletivas };
+module.exports = { buscarConhecimentos, perguntaEletivas, perguntaGestao };

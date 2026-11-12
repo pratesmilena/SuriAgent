@@ -30,3 +30,17 @@ test('eletivas são consultadas por vínculo docente, sem usar FAQ ou clubes',as
  const r=await perguntar('Quais eletiva tem na escola?',{eletivas:async()=>({registros:[{professor:'PEDRO',disciplina:'ELETIVA',origens:[{tipo:'horarios',turmas:['1ºA']}]}]}),buscar:()=>assert.fail('Não deve buscar FAQ'),conteudos:()=>assert.fail('Não deve consultar clubes')});
  assert.match(r.solucao,/PEDRO/);assert.match(r.solucao,/1ºA/);assert.match(r.solucao,/não informa os nomes dos temas/);
 });
+
+test('gestores são encontrados com sinônimos e sem exigir a palavra escola',async()=>{
+ const gestao={id:17,categoria:'Gestão',titulo:'Equipe gestora',conteudo:'Diretora: Elaine.\n\nVice-diretor da tarde: Paulo.\n\nCoordenadora da tarde: Rita.',palavras_chave:'gestão, gestores, diretora, vice-diretor, coordenadora'};
+ for(const pergunta of ['Quem são os gestores da escola?','Quem é a diretora?','Qual é o nome do vice-diretor da tarde?','Quem cuida da coordenação na escola?','Quem manda na escola?','Quem administra a escola?','quem sao os gestore da escola']){
+  const r=await perguntar(pergunta,{buscar:p=>buscarConhecimentos(p,banco([gestao,...registros])),elaborar:async()=>null});
+  assert.equal(r.handled,true,pergunta);assert.match(r.solucao,/Elaine/,pergunta);assert.match(r.solucao,/Paulo/,pergunta);assert.match(r.solucao,/Rita/,pergunta);
+ }
+});
+test('Gemini pode selecionar somente o trecho do gestor solicitado, com contexto validado',async()=>{
+ const gestao={id:17,categoria:'Gestão',titulo:'Equipe gestora',conteudo:'Diretora: Elaine.\n\nVice-diretor da tarde: Paulo.\n\nCoordenadora da tarde: Rita.',palavras_chave:'gestão, diretora, vice-diretor, coordenadora'};
+ const r=await perguntar('Qual é o nome do vice-diretor da tarde?',{env:{SURI_GEMINI:'test-only'},buscar:p=>buscarConhecimentos(p,banco([gestao])),elaborar:(pergunta,resultados,options)=>require('../respostas-escola-ia').responderComBase(pergunta,resultados,{...options,generate:async args=>{
+  assert.match(args.message,/Paulo/);assert.equal(args.provider,'gemini');return{solucao:'{"trechos":[1]}'};
+ }})});assert.equal(r.solucao,'Vice-diretor da tarde: Paulo.');
+});

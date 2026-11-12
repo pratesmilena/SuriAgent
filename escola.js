@@ -1,6 +1,6 @@
 const { consultarHorarios, consultarLocalizacao, listarCatalogoHorarios } = require('./supabase');
 const { responderComBase, perguntaAberta } = require('./respostas-escola-ia');
-const { buscarConhecimentos, perguntaEletivas } = require('./busca-conhecimentos');
+const { buscarConhecimentos, perguntaEletivas, perguntaGestao } = require('./busca-conhecimentos');
 const { consultarEletivas } = require('./professores-escola');
 const { somenteOutroPeriodo, AVISO_MANHA } = require('./escopo-tarde');
 const { pedidoListaFaq, respostaListaFaq } = require('./perguntas-frequentes');
@@ -68,7 +68,7 @@ function criarPerguntaEscola({ consultar = consultarHorarios, localizar = consul
             }
         }
         const buscaLivre = !topicos.length && !intencao.horario && !intencao.localizacao && !intencao.listaTurmas
-            && /\bescola\b|suriname/.test(normalizar(pergunta));
+            && (/\bescola\b|suriname/.test(normalizar(pergunta)) || perguntaGestao(pergunta));
         if (buscaLivre) {
             try {
                 const resultado = await buscar(pergunta);

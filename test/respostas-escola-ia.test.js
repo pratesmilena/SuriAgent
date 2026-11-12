@@ -38,3 +38,12 @@ test('elaboração escolar aceita o mesmo nome alternativo da credencial Gemini'
  let chamada=false;const r=await responderComBase('Resuma os projetos',base,{env:{SURI_GEMINI:'test-alias'},generate:async()=>{chamada=true;return{solucao:'{"trechos":[0]}'}}});
  assert.equal(chamada,true);assert.equal(r,'Projeto de leitura.');
 });
+
+test('lista de gestores permite selecionar apenas o cargo solicitado sem alterar o cadastro',async()=>{
+ const conteudo='Equipe gestora:\n\n• Diretora: Elaine.\n• Vice-diretor da tarde: Paulo.\n• Coordenadora da tarde: Rita.';
+ const base=[{origem:'conhecimentos',status:'disponivel',registros:[{conteudo}]}];
+ const r=await responderComBase('Quem é o vice-diretor?',base,{env:{SURI_GEMINI:'test-only'},permitirPerguntaDireta:true,generate:async args=>{
+  const docs=JSON.parse(args.message).documentos;const id=docs.find(d=>d.conteudo.includes('Paulo')).id;
+  assert.ok(!docs.find(d=>d.id===id).conteudo.includes('Elaine'));return{solucao:JSON.stringify({trechos:[id]})};
+ }});assert.equal(r,'• Vice-diretor da tarde: Paulo.');assert.equal(base[0].registros[0].conteudo,conteudo);
+});

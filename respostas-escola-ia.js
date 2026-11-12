@@ -12,7 +12,7 @@ async function responderComBase(pergunta, resultados, { env = process.env, gener
     const trechos = [];
     let tamanho = 0;
     for (const doc of documentos) {
-        for (const paragrafo of doc.conteudo.split(/\r?\n\s*\r?\n/)) {
+        for (const paragrafo of doc.conteudo.split(/\r?\n\s*\r?\n/).flatMap(p => p.split(/\r?\n(?=[ \t]*[•*-]\s)/))) {
             if (!paragrafo.trim() || trechos.includes(paragrafo)) continue;
             if (tamanho + paragrafo.length > 16000 || trechos.length >= 40) break;
             trechos.push(paragrafo); tamanho += paragrafo.length;

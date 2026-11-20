@@ -49,4 +49,12 @@ A ação de sair usa signOut com escopo local: encerra o perfil neste dispositiv
 
 A validação visual de sessão restaurada, nome, boas-vindas, modal, falha de logout, nova entrada e saída foi feita com SDK/sessão simulados no Chromium; o assistente não entrou na conta Google da responsável. O modo visitante e as consultas públicas permanecem disponíveis.
 
-A notificação usa um marcador temporário em sessionStorage durante o redirecionamento OAuth, sem guardar nome, e-mail ou token nesse marcador. Só é exibida após getUser confirmar a conta. O marcador é consumido uma vez, expira após dez minutos e é descartado em cancelamento/falha de login ou saída. A identificação da conta permanece na janela Meu perfil, sem faixa permanente nas abas.
+A notificação usa um marcador temporário em sessionStorage com a hora de início e o método durante o redirecionamento OAuth. O marcador de confirmação por e-mail guarda o ID da conta e a hora de início no navegador. Esses marcadores não armazenam nome, e-mail ou token. Só é exibida após getUser confirmar a conta. O marcador é consumido uma vez, expira após dez minutos e é descartado em cancelamento/falha de login ou saída. A identificação da conta permanece na janela Meu perfil, sem faixa permanente nas abas.
+
+## Acesso por e-mail e senha
+
+Na janela **Entrar**, expanda **Criar conta com e-mail** e informe nome, e-mail e senha. Quando o Supabase exigir confirmação, abra o link recebido no mesmo navegador em que iniciou o cadastro. Use **Entrar com e-mail** para acessar uma conta existente. Os perfis dos dois métodos de acesso são sincronizados na tabela `public.suri_perfis`. A senha é processada pelo Supabase Auth.
+
+O primeiro acesso pelo Google ou a confirmação de um cadastro por e-mail mostra uma mensagem de boas-vindas. Um novo login em uma conta existente mostra uma saudação de retorno. A restauração automática da sessão mantém o perfil aberto para consulta sem repetir a saudação.
+
+Para cadastros públicos com confirmação, configure um serviço SMTP em **Authentication → SMTP Settings**. O serviço padrão do Supabase limita o envio aos endereços autorizados da equipe.

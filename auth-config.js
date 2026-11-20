@@ -23,7 +23,12 @@ async function authConfig(env = process.env, fetchImpl = fetch) {
         }
         if (response.ok) {
             const settings = await response.json();
-            return { ...config, googleEnabled: settings.external?.google === true };
+            return {
+                ...config,
+                googleEnabled: settings.external?.google === true,
+                emailEnabled: settings.external?.email === true,
+                signupEnabled: settings.disable_signup !== true
+            };
         }
     } catch {}
     return { ...config, googleEnabled: null };

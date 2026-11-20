@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleLogin = document.getElementById('google-login');
     const googleRegister = document.getElementById('google-register');
     const googleButtons = [googleLogin, googleRegister].filter(Boolean);
+    const emailLogin = document.getElementById('email-login');
+    const emailRegister = document.getElementById('email-register');
+    const emailForms = [emailLogin, emailRegister].filter(form => form?.tagName === 'FORM');
     const status = document.getElementById('auth-status');
     const signOutButtons = [
         ...document.querySelectorAll('[data-sign-out]')
@@ -13,7 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let client;
     let signingIn = false;
     let signingOut = false;
+    const emailMarker = 'suri-email-signup';
+    const callback = new URLSearchParams(location.search).has('code');
     let googleAvailable = false;
+    let emailAvailable = false;
+    let signupAvailable = false;
+    let pendingEmailLogin;
     let verificationId = 0;
     let verificationTimer;
 
@@ -43,31 +51,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (hasAuthError) clearPendingWelcome();
 
-    function welcomeAfterLogin(name) {
+    function welcomeAfterLogin(user, name) {
         let pending;
 
         try {
-            pending = JSON.parse(
+            pending = pendingEmailLogin || JSON.parse(
                 sessionStorage.getItem(loginMarker) || 'null'
             );
         } catch {}
 
         clearPendingWelcome();
+        pendingEmailLogin = undefined;
+
+        let confirmedSignup = false;
+        if (callback && !hasAuthError) {
+            try {
+                const expected = JSON.parse(localStorage.getItem(emailMarker) || 'null');
+                confirmedSignup = expected?.id === user.id &&
+                    Date.now() - expected.startedAt < 24 * 60 * 60 * 1000;
+                if (confirmedSignup) localStorage.removeItem(emailMarker);
+            } catch {}
+        }
 
         const age = Date.now() - pending?.startedAt;
+        const validLogin = Number.isFinite(age) && age >= 0 && age <= 10 * 60 * 1000;
+        if (hasAuthError || (!confirmedSignup && !validLogin)) return;
 
-        if (
-            !Number.isFinite(age) ||
-            age < 0 ||
-            age > 10 * 60 * 1000 ||
-            hasAuthError
-        ) {
-            return;
-        }
+        // A data do Auth distingue um primeiro acesso Google de um retorno.
+        const created = Date.parse(user.created_at);
+        const newGoogleAccount = pending?.method === 'google' &&
+            created >= pending.startedAt - 5000 &&
+            created <= Date.now() + 5000;
+        const newAccount = confirmedSignup || pending?.method === 'signup' || newGoogleAccount;
 
         setText(
             'welcome-toast-message',
-            `Bem-vindo(a), ${name}! Que bom ter você por aqui.`
+            newAccount
+                ? `Boas-vindas ao SuriAgent, ${name}! Sua conta foi criada.`
+                : `Que bom ter você de volta, ${name}!`
         );
 
         if (welcomeToast && window.bootstrap?.Toast) {
@@ -78,9 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateGoogleButtons() {
+    function updateAuthControls() {
         googleButtons.forEach(button => {
-            button.disabled = !googleAvailable || signingIn;
+            button.disabled = !googleAvailable || signingIn || (button === googleRegister && !signupAvailable);
+        });
+        emailForms.forEach(form => {
+            const registering = form === emailRegister;
+            form.closest('details').hidden = !emailAvailable || (registering && !signupAvailable);
+            form.querySelector('fieldset').disabled = signingIn || !emailAvailable || (registering && !signupAvailable);
         });
     }
 
@@ -145,10 +171,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         signingIn = false;
-        updateGoogleButtons();
+        updateAuthControls();
 
         if (user) {
-            welcomeAfterLogin(name);
+            welcomeAfterLogin(user, name);
         } else if (welcomeToast && window.bootstrap?.Toast) {
             window.bootstrap.Toast.getInstance(welcomeToast)?.hide();
         }
@@ -254,12 +280,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             sessionStorage.setItem(
                 loginMarker,
-                JSON.stringify({ startedAt: Date.now() })
+                JSON.stringify({ startedAt: Date.now(), method: 'google' })
             );
         } catch {}
 
         signingIn = true;
-        updateGoogleButtons();
+        updateAuthControls();
         setStatus(registering ? 'Abrindo o cadastro com Google…' : 'Abrindo o login com Google…');
 
         try {
@@ -277,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch {
             clearPendingWelcome();
             signingIn = false;
-            updateGoogleButtons();
+            updateAuthControls();
 
             setStatus(
                 'Não foi possível iniciar o login Google. Continue como visitante ou tente novamente.'
@@ -286,6 +312,78 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     googleButtons.forEach(button => button.addEventListener('click', startGoogleLogin));
+
+    async function submitEmail(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const registering = form === emailRegister;
+        if (!client || !emailAvailable || signingIn || signingOut || (registering && !signupAvailable)) return;
+
+        const fields = new FormData(form);
+        const email = fields.get('email').trim();
+        const password = fields.get('password');
+        const name = registering ? fields.get('name').trim() : '';
+        const feedback = form.querySelector('[data-email-status]');
+        if (registering && !name) {
+            feedback.textContent = 'Informe seu nome.';
+            return;
+        }
+
+        clearPendingWelcome();
+        signingIn = true;
+        updateAuthControls();
+        feedback.textContent = registering ? 'Criando sua conta…' : 'Entrando…';
+
+        try {
+            const { data, error } = registering
+                ? await client.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { full_name: name },
+                        emailRedirectTo: `${location.origin}${location.pathname}#chat-panel`
+                    }
+                })
+                : await client.auth.signInWithPassword({ email, password });
+
+            if (error) throw error;
+            form.reset();
+            if (data.session) {
+                pendingEmailLogin = { startedAt: Date.now(), method: registering ? 'signup' : 'password' };
+                feedback.textContent = '';
+                signingIn = false;
+                await verifySession();
+            } else if (registering) {
+                if (data.user?.id && data.user.identities?.length) {
+                    try {
+                        localStorage.setItem(emailMarker, JSON.stringify({
+                            id: data.user.id, startedAt: Date.now()
+                        }));
+                    } catch {}
+                }
+                feedback.textContent = 'Se o cadastro foi solicitado para um e-mail novo, confira sua caixa de entrada e abra o link de confirmação neste navegador. Se já tem conta, use Entrar com e-mail.';
+            }
+        } catch (error) {
+            if (error.code === 'email_not_confirmed') {
+                feedback.textContent = 'Confirme seu e-mail pelo link recebido antes de entrar.';
+            } else if (error.code === 'email_address_not_authorized') {
+                feedback.textContent = 'O envio de confirmação para este e-mail está indisponível. Você pode entrar com Google ou acessar como visitante.';
+            } else if (error.code === 'weak_password') {
+                feedback.textContent = 'Use uma senha mais forte e tente novamente.';
+            } else if (error.status === 429) {
+                feedback.textContent = 'Muitas tentativas. Aguarde um pouco e tente novamente.';
+            } else {
+                feedback.textContent = registering
+                    ? 'Não foi possível criar a conta agora. Confira os dados e tente novamente.'
+                    : 'Não foi possível entrar. Confira o e-mail e a senha.';
+            }
+        } finally {
+            signingIn = false;
+            updateAuthControls();
+        }
+    }
+
+    emailForms.forEach(form => form.addEventListener('submit', submitEmail));
 
     async function signOut() {
         if (!client || signingOut) return;
@@ -334,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function initializeAuth() {
-        updateGoogleButtons();
+        updateAuthControls();
 
         try {
             const response = await fetch('/api/auth/config', {
@@ -374,13 +472,15 @@ document.addEventListener('DOMContentLoaded', () => {
             );
 
             googleAvailable = config.googleEnabled !== false;
+            emailAvailable = config.emailEnabled !== false;
+            signupAvailable = config.signupEnabled !== false;
 
-            updateGoogleButtons();
+            updateAuthControls();
 
             setStatus(
                 googleAvailable
-                    ? 'Já tem conta? Entre com o mesmo Google que usou no cadastro.'
-                    : 'O login Google ainda não foi habilitado. Continue como visitante.'
+                    ? ''
+                    : 'O login com Google está indisponível.'
             );
 
             client.auth.onAuthStateChange(event => {
@@ -392,6 +492,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     render(null);
                     return;
                 }
+
+                if (signingIn) return;
 
                 if (
                     event === 'SIGNED_IN' ||

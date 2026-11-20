@@ -2,7 +2,7 @@
 
 Assistente virtual voltado ao **período da tarde** da Escola Estadual República do Suriname, com consulta de informações escolares e horários no Supabase, chat e login opcional com Google.
 
-**Publicação anterior:** [suriagent.netlify.app](https://suriagent.netlify.app). A versão nesse endereço depende do último deploy concluído e pode não conter o código atual da branch `main`.
+**Site publicado** [suri-agent.netlify.app](https://suri-agent.netlify.app).
 
 O repositório também inclui configuração para testes no **Render Free**, com interface e API no mesmo servidor. Nenhum novo domínio foi provisionado nesta entrega.
 

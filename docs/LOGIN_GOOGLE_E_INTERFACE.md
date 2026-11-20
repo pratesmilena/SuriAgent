@@ -31,6 +31,12 @@ No projeto SuriAgent, `/auth/v1/settings` indica que o Google está habilitado e
 5. Salve, reinicie o aplicativo se alterou suas variáveis e recarregue a página. O botão Google ficará disponível quando o serviço informar o provedor habilitado.
 6. Abra Entrar → Continuar com Google, conclua a autorização e confirme o retorno à aplicação, o nome da conta e o botão Sair. Saia e confira que a consulta de aulas continua funcionando como visitante.
 
+## Consultar os cadastros no painel
+
+No projeto SuriAgent, abra **Table Editor → public → suri_perfis** para consultar os registros gravados. As contas correspondentes aparecem em **Authentication → Users**. O campo `id` liga cada perfil à sua conta no Supabase Auth.
+
+A tabela guarda nome, e-mail, URL da foto, data de cadastro, data de atualização e data do último login. O banco sincroniza o perfil quando a conta é criada ou quando o e-mail, os dados do perfil ou o último login mudam. Sair da conta encerra a sessão neste navegador e preserva o cadastro. Quem usa o site como visitante pode consultar as informações escolares sem criar uma conta.
+
 ## Validação
 
 49 testes automatizados locais passaram, incluindo as verificações de chave pública, rejeição de credenciais administrativas, detecção do provedor Google e falha do serviço. No Chromium, foram verificados Plasma em WebGL, modo de movimento reduzido, menu desktop/móvel, atalhos de navegação, Escape, consulta de aulas reais sem login e o aviso real de Google desabilitado. O fluxo de login, verificação de sessão e logout foi exercitado com SDK simulado; não houve autenticação real com uma conta Google. A confirmação ponta a ponta do OAuth depende da configuração administrativa acima e do próprio usuário autorizar sua conta.

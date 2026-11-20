@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const google = document.getElementById('google-login');
+    const googleLogin = document.getElementById('google-login');
+    const googleRegister = document.getElementById('google-register');
+    const googleButtons = [googleLogin, googleRegister].filter(Boolean);
     const status = document.getElementById('auth-status');
     const signOutButtons = [
         ...document.querySelectorAll('[data-sign-out]')
@@ -76,6 +78,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function updateGoogleButtons() {
+        googleButtons.forEach(button => {
+            button.disabled = !googleAvailable || signingIn;
+        });
+    }
+
     function render(user, profile) {
         const metadata = user?.user_metadata || {};
         const candidate = [
@@ -100,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             user ? profile?.email ?? user.email ?? '' : ''
         );
 
+        setText('profile-storage-status', user ? 'Verificando o cadastro…' : '');
         setText('sidebar-profile-name', 'Aprenda do seu jeito');
         setText(
             'sidebar-profile-note',
@@ -136,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         signingIn = false;
-        if (google) google.disabled = !googleAvailable;
+        updateGoogleButtons();
 
         if (user) {
             welcomeAfterLogin(name);
@@ -194,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         render(user);
         setStatus('');
 
+        let saved = false;
         try {
             const { data: profile, error } = await client
                 .from('suri_perfis')
@@ -204,9 +214,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (current === verificationId && !error && profile) {
                 render(user, profile);
+                saved = true;
             }
         } catch {
             // O perfil do Auth continua disponível se a Data API falhar.
+        }
+
+        if (current === verificationId) {
+            setText('profile-storage-status', saved
+                ? 'Cadastro salvo.'
+                : 'Sua sessão está ativa. Não foi possível confirmar o cadastro agora.');
         }
     }
 
@@ -228,7 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    google?.addEventListener('click', async () => {
+    async function startGoogleLogin({ currentTarget }) {
+        const registering = currentTarget === googleRegister;
         if (!client || !googleAvailable || signingIn || signingOut) {
             return;
         }
@@ -241,8 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch {}
 
         signingIn = true;
-        google.disabled = true;
-        setStatus('Abrindo o acesso seguro do Google…');
+        updateGoogleButtons();
+        setStatus(registering ? 'Abrindo o cadastro com Google…' : 'Abrindo o login com Google…');
 
         try {
             const { error } = await client.auth.signInWithOAuth({
@@ -250,7 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 options: {
                     redirectTo:
                         `${location.origin}${location.pathname}#chat-panel`,
-                    scopes: 'openid email profile'
+                    scopes: 'openid email profile',
+                    ...(registering && { queryParams: { prompt: 'select_account' } })
                 }
             });
 
@@ -258,13 +277,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch {
             clearPendingWelcome();
             signingIn = false;
-            google.disabled = !googleAvailable;
+            updateGoogleButtons();
 
             setStatus(
                 'Não foi possível iniciar o login Google. Continue como visitante ou tente novamente.'
             );
         }
-    });
+    }
+
+    googleButtons.forEach(button => button.addEventListener('click', startGoogleLogin));
 
     async function signOut() {
         if (!client || signingOut) return;
@@ -313,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function initializeAuth() {
-        if (google) google.disabled = true;
+        updateGoogleButtons();
 
         try {
             const response = await fetch('/api/auth/config', {
@@ -354,11 +375,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             googleAvailable = config.googleEnabled !== false;
 
-            if (google) google.disabled = !googleAvailable;
+            updateGoogleButtons();
 
             setStatus(
                 googleAvailable
-                    ? 'O primeiro acesso com Google cria sua conta.'
+                    ? 'Já tem conta? Entre com o mesmo Google que usou no cadastro.'
                     : 'O login Google ainda não foi habilitado. Continue como visitante.'
             );
 

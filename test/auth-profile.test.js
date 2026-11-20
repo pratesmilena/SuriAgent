@@ -21,11 +21,13 @@ function openPage(profileRequest) {
     };
 
     const user = { id: 'user-id', email: 'auth@example.com', user_metadata: { name: 'Nome Auth' } };
+    const oauthRequests = [];
     const client = {
         auth: {
             async getSession() { return { data: { session: {} } }; },
             async getUser() { return { data: { user } }; },
             onAuthStateChange() {},
+            async signInWithOAuth(request) { oauthRequests.push(request); return {}; },
             async signOut(options) { assert.equal(options.scope, 'local'); return {}; }
         },
         from(table) {
@@ -62,13 +64,18 @@ function openPage(profileRequest) {
             }
         },
         fetch: async () => ({ ok: true, json: async () => ({ available: true, googleEnabled: true }) }),
-        location: { search: '', hash: '' },
+        location: { search: '', hash: '', origin: 'https://suri-agent.netlify.app', pathname: '/' },
         URLSearchParams,
         AbortSignal,
         clearTimeout
     });
 
-    return { element, logout: () => handlers.get('logout:click')() };
+    return {
+        element,
+        oauthRequests,
+        click: id => handlers.get(`${id}:click`)({ currentTarget: element(id) }),
+        logout: () => handlers.get('logout:click')()
+    };
 }
 
 test('a sessão restaurada exibe o perfil do próprio usuário', async () => {
@@ -76,6 +83,7 @@ test('a sessão restaurada exibe o perfil do próprio usuário', async () => {
     await flush();
     assert.equal(page.element('account-name').textContent, 'Nome Perfil');
     assert.equal(page.element('account-email').textContent, 'perfil@example.com');
+    assert.equal(page.element('profile-storage-status').textContent, 'Cadastro salvo.');
 });
 
 test('uma falha na leitura do perfil mantém os dados confirmados pelo Auth', async () => {
@@ -84,6 +92,7 @@ test('uma falha na leitura do perfil mantém os dados confirmados pelo Auth', as
     assert.equal(page.element('account-status').textContent, 'Perfil conectado');
     assert.equal(page.element('account-name').textContent, 'Nome Auth');
     assert.equal(page.element('account-email').textContent, 'auth@example.com');
+    assert.match(page.element('profile-storage-status').textContent, /Não foi possível confirmar/);
 });
 
 test('uma resposta atrasada do perfil não restaura a conta depois de sair', async () => {
@@ -96,4 +105,22 @@ test('uma resposta atrasada do perfil não restaura a conta depois de sair', asy
     assert.equal(page.element('account-status').textContent, 'Visitante');
     assert.equal(page.element('account-email').textContent, '');
     assert.equal(page.element('continue-visitor').hidden, false);
+});
+
+test('cadastro abre o seletor de contas e login preserva o fluxo normal', async () => {
+    const cadastro = openPage(async () => ({}));
+    const login = openPage(async () => ({}));
+    await flush();
+
+    await cadastro.click('google-register');
+    await login.click('google-login');
+
+    assert.equal(cadastro.oauthRequests[0].options.queryParams.prompt, 'select_account');
+    assert.equal(login.oauthRequests[0].options.queryParams, undefined);
+    for (const page of [cadastro, login]) {
+        assert.equal(page.oauthRequests[0].provider, 'google');
+        assert.equal(page.oauthRequests[0].options.redirectTo, 'https://suri-agent.netlify.app/#chat-panel');
+        assert.equal(page.element('google-login').disabled, true);
+        assert.equal(page.element('google-register').disabled, true);
+    }
 });

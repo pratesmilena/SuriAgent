@@ -29,7 +29,7 @@ No projeto SuriAgent, `/auth/v1/settings` indica que o Google está habilitado e
 3. No Supabase, abra Authentication → Sign In / Providers → Google, habilite o provedor e cadastre Client ID e Client Secret do Google. O Client Secret fica somente no painel Supabase, nunca no navegador, GitHub ou chat.
 4. Em Authentication → URL Configuration, ajuste Site URL para a URL real do aplicativo. Para desenvolvimento local, use `http://localhost:3000`. Em Redirect URLs, autorize `http://localhost:3000/**` e, se utilizar a porta alternativa, `http://localhost:3001/**`. Em produção, cadastre somente as URLs necessárias do domínio HTTPS real.
 5. Salve, reinicie o aplicativo se alterou suas variáveis e recarregue a página. O botão Google ficará disponível quando o serviço informar o provedor habilitado.
-6. Abra Entrar → Continuar com Google, conclua a autorização e confirme o retorno à aplicação, o nome da conta e o botão Sair. Saia e confira que a consulta de aulas continua funcionando como visitante.
+6. Abra Entrar → Criar conta com Google para usar uma nova conta Google ou selecione Entrar com Google para uma conta existente. Conclua a autorização e abra Meu perfil para conferir a mensagem Cadastro salvo e o botão Sair do perfil. Saia e confira que a consulta de aulas continua funcionando como visitante.
 
 ## Consultar os cadastros no painel
 

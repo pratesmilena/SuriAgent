@@ -1,126 +1,400 @@
 document.addEventListener('DOMContentLoaded', () => {
     const google = document.getElementById('google-login');
     const status = document.getElementById('auth-status');
-    const accountStatus = document.getElementById('account-status');
-    const accountOpen = document.getElementById('account-open');
-    const signedOut = document.getElementById('signed-out-view');
-    const signedIn = document.getElementById('signed-in-view');
-    const signOutButtons = [...document.querySelectorAll('[data-sign-out]')];
-    const logoutErrors = [document.getElementById('logout-error')];
+    const signOutButtons = [
+        ...document.querySelectorAll('[data-sign-out]')
+    ];
+    const logoutError = document.getElementById('logout-error');
+    const welcomeToast = document.getElementById('welcome-toast');
+    const loginMarker = 'suri-login-pending';
+
     let client;
     let signingIn = false;
+    let signingOut = false;
     let googleAvailable = false;
     let verificationId = 0;
-    const loginMarker = 'suri-login-pending';
-    const welcomeToast = document.getElementById('welcome-toast');
-    const hasAuthError = new URLSearchParams(location.search).has('error') || location.hash.includes('error=');
-    function clearPendingWelcome() { try { sessionStorage.removeItem(loginMarker); } catch {} }
+    let verificationTimer;
+
+    const hasAuthError =
+        new URLSearchParams(location.search).has('error') ||
+        location.hash.includes('error=');
+
+    function setText(id, text) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = text;
+    }
+
+    function setHidden(id, hidden) {
+        const element = document.getElementById(id);
+        if (element) element.hidden = hidden;
+    }
+
+    function setStatus(message) {
+        if (status) status.textContent = message;
+    }
+
+    function clearPendingWelcome() {
+        try {
+            sessionStorage.removeItem(loginMarker);
+        } catch {}
+    }
+
     if (hasAuthError) clearPendingWelcome();
+
     function welcomeAfterLogin(name) {
         let pending;
-        try { pending = JSON.parse(sessionStorage.getItem(loginMarker) || 'null'); } catch {}
-        clearPendingWelcome();
-        const age = Date.now() - pending?.startedAt;
-        if (!Number.isFinite(age) || age < 0 || age > 10 * 60 * 1000 || hasAuthError) return;
-        document.getElementById('welcome-toast-message').textContent = `Bem-vindo(a), ${name}! Que bom ter você por aqui.`;
-        bootstrap.Toast.getOrCreateInstance(welcomeToast, { delay: 5000, autohide: true }).show();
-    }
-    function render(user) {
-        const metadata = user?.user_metadata || {};
-        const candidate = [metadata.full_name, metadata.name, user?.email?.split('@')[0]].find(value => typeof value === 'string' && value.trim());
-        const name = candidate?.trim().slice(0, 120) || 'estudante';
-        signedOut.hidden = !!user;
-        signedIn.hidden = !user;
-        accountStatus.textContent = user ? 'Perfil conectado' : 'Visitante';
-        accountOpen.textContent = user ? 'Meu perfil' : 'Entrar →';
-        document.getElementById('account-name').textContent = user ? name : '';
-        document.getElementById('account-email').textContent = user && typeof user.email === 'string' ? user.email : '';
-        document.getElementById('sidebar-profile-name').textContent = 'Aprenda do seu jeito';
-        document.getElementById('sidebar-profile-note').textContent = user ? 'Gerencie sua conta em Meu perfil.' : 'Com sua conta ou como visitante.';
-        document.getElementById('sidebar-profile-open').textContent = user ? 'Meu perfil' : 'Minha conta';
-        document.getElementById('account-title').hidden = !!user;
-        document.getElementById('profile-dialog-title').hidden = !user;
-        document.getElementById('account-modal').setAttribute('aria-labelledby', user ? 'profile-dialog-title' : 'account-title');
-        document.getElementById('account-description').textContent = user ? 'Esta é a sua conta conectada ao SuriAgent.' : 'Entre com sua conta ou continue explorando como visitante.';
-        document.getElementById('visitor-divider').hidden = !!user;
-        document.getElementById('continue-visitor').hidden = !!user;
-        logoutErrors.forEach(element => { element.hidden = true; element.textContent = ''; });
-        if (user) welcomeAfterLogin(name);
-        else { bootstrap.Toast.getInstance(welcomeToast)?.hide(); signingIn = false; google.disabled = !googleAvailable; }
-    }
-    async function verifySession() {
-        const current = ++verificationId;
+
         try {
-            const { data: { session }, error } = await client.auth.getSession();
-            if (current !== verificationId) return;
-            if (error) throw error;
-            if (!session) { render(null); return; }
-            const { data: { user }, error: userError } = await client.auth.getUser();
-            if (current !== verificationId) return;
-            if (userError) throw userError;
-            render(user);
-        } catch {
-            if (current !== verificationId) return;
-            render(null);
-            status.textContent = 'Não foi possível confirmar sua sessão. Você pode continuar como visitante e tentar entrar novamente.';
+            pending = JSON.parse(
+                sessionStorage.getItem(loginMarker) || 'null'
+            );
+        } catch {}
+
+        clearPendingWelcome();
+
+        const age = Date.now() - pending?.startedAt;
+
+        if (
+            !Number.isFinite(age) ||
+            age < 0 ||
+            age > 10 * 60 * 1000 ||
+            hasAuthError
+        ) {
+            return;
+        }
+
+        setText(
+            'welcome-toast-message',
+            `Bem-vindo(a), ${name}! Que bom ter você por aqui.`
+        );
+
+        if (welcomeToast && window.bootstrap?.Toast) {
+            window.bootstrap.Toast.getOrCreateInstance(
+                welcomeToast,
+                { delay: 5000, autohide: true }
+            ).show();
         }
     }
-    google.addEventListener('click', async () => {
-        if (!client || signingIn) return;
-        try { sessionStorage.setItem(loginMarker, JSON.stringify({ startedAt: Date.now() })); } catch {}
-        signingIn = true; google.disabled = true;
-        status.textContent = 'Abrindo o acesso seguro do Google…';
+
+    function render(user) {
+        const metadata = user?.user_metadata || {};
+        const candidate = [
+            metadata.full_name,
+            metadata.name,
+            user?.email?.split('@')[0]
+        ].find(value =>
+            typeof value === 'string' && value.trim()
+        );
+
+        const name = candidate?.trim().slice(0, 120) || 'estudante';
+
+        setHidden('signed-out-view', !!user);
+        setHidden('signed-in-view', !user);
+
+        setText('account-status', user ? 'Perfil conectado' : 'Visitante');
+        setText('account-open', user ? 'Meu perfil' : 'Entrar →');
+        setText('account-name', user ? name : '');
+        setText(
+            'account-email',
+            user && typeof user.email === 'string' ? user.email : ''
+        );
+
+        setText('sidebar-profile-name', 'Aprenda do seu jeito');
+        setText(
+            'sidebar-profile-note',
+            user
+                ? 'Gerencie sua conta em Meu perfil.'
+                : 'Com sua conta ou como visitante.'
+        );
+        setText(
+            'sidebar-profile-open',
+            user ? 'Meu perfil' : 'Minha conta'
+        );
+
+        setHidden('account-title', !!user);
+        setHidden('profile-dialog-title', !user);
+
+        document.getElementById('account-modal')?.setAttribute(
+            'aria-labelledby',
+            user ? 'profile-dialog-title' : 'account-title'
+        );
+
+        setText(
+            'account-description',
+            user
+                ? 'Esta é a sua conta conectada ao SuriAgent.'
+                : 'Entre com sua conta ou continue explorando como visitante.'
+        );
+
+        setHidden('visitor-divider', !!user);
+        setHidden('continue-visitor', !!user);
+
+        if (logoutError) {
+            logoutError.hidden = true;
+            logoutError.textContent = '';
+        }
+
+        signingIn = false;
+        if (google) google.disabled = !googleAvailable;
+
+        if (user) {
+            welcomeAfterLogin(name);
+        } else if (welcomeToast && window.bootstrap?.Toast) {
+            window.bootstrap.Toast.getInstance(welcomeToast)?.hide();
+        }
+    }
+
+    async function verifySession() {
+        if (!client || signingOut) return;
+
+        const current = ++verificationId;
+        let user;
+
         try {
-            const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: {
-                redirectTo: `${location.origin}${location.pathname}#chat-panel`, scopes: 'openid email profile'
-            } });
+            const { data, error } = await client.auth.getSession();
+
+            if (current !== verificationId) return;
+            if (error) throw error;
+
+            if (!data?.session) {
+                render(null);
+                return;
+            }
+
+            const result = await client.auth.getUser();
+
+            if (current !== verificationId) return;
+            if (result.error) throw result.error;
+
+            if (!result.data?.user) {
+                throw new Error('Sessão não confirmada');
+            }
+
+            user = result.data.user;
+        } catch (error) {
+            if (current !== verificationId) return;
+
+            if (error?.status === 401 || error?.status === 403) {
+                render(null);
+                setStatus(
+                    'Não foi possível validar sua sessão. Entre novamente para acessar seu perfil.'
+                );
+            } else {
+                // Uma falha de conexão não significa que houve logout.
+                setStatus(
+                    'Não foi possível verificar sua sessão agora. Tentaremos novamente quando você voltar à página ou recuperar a conexão.'
+                );
+            }
+
+            return;
+        }
+
+        render(user);
+        setStatus('');
+    }
+
+    function scheduleVerification() {
+        if (!client || signingIn || signingOut) return;
+
+        clearTimeout(verificationTimer);
+        verificationTimer = setTimeout(() => {
+            void verifySession();
+        }, 0);
+    }
+
+    window.addEventListener('online', scheduleVerification);
+    window.addEventListener('focus', scheduleVerification);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            scheduleVerification();
+        }
+    });
+
+    google?.addEventListener('click', async () => {
+        if (!client || !googleAvailable || signingIn || signingOut) {
+            return;
+        }
+
+        try {
+            sessionStorage.setItem(
+                loginMarker,
+                JSON.stringify({ startedAt: Date.now() })
+            );
+        } catch {}
+
+        signingIn = true;
+        google.disabled = true;
+        setStatus('Abrindo o acesso seguro do Google…');
+
+        try {
+            const { error } = await client.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo:
+                        `${location.origin}${location.pathname}#chat-panel`,
+                    scopes: 'openid email profile'
+                }
+            });
+
             if (error) throw error;
         } catch {
             clearPendingWelcome();
-            status.textContent = 'Não foi possível iniciar o login Google. Continue como visitante ou tente novamente mais tarde.';
-            google.disabled = !googleAvailable; signingIn = false;
+            signingIn = false;
+            google.disabled = !googleAvailable;
+
+            setStatus(
+                'Não foi possível iniciar o login Google. Continue como visitante ou tente novamente.'
+            );
         }
     });
+
     async function signOut() {
-        if (!client || signOutButtons.some(button => button.disabled)) return;
+        if (!client || signingOut) return;
+
+        signingOut = true;
         ++verificationId;
-        signOutButtons.forEach(button => { button.disabled = true; });
-        logoutErrors.forEach(element => { element.hidden = true; });
+        clearTimeout(verificationTimer);
+
+        signOutButtons.forEach(button => {
+            button.disabled = true;
+        });
+
+        if (logoutError) logoutError.hidden = true;
+
         try {
-            const { error } = await client.auth.signOut({ scope: 'local' });
+            const { error } = await client.auth.signOut({
+                scope: 'local'
+            });
+
             if (error) throw error;
+
             ++verificationId;
             clearPendingWelcome();
             render(null);
-            status.textContent = 'Você saiu do perfil neste dispositivo. Continue como visitante quando quiser.';
+
+            setStatus(
+                'Você saiu do perfil neste dispositivo. Continue como visitante quando quiser.'
+            );
         } catch {
-            logoutErrors.forEach(element => {
-                element.textContent = 'Não foi possível sair do perfil. Tente novamente.';
-                element.hidden = false;
+            if (logoutError) {
+                logoutError.textContent =
+                    'Não foi possível sair do perfil. Tente novamente.';
+                logoutError.hidden = false;
+            }
+        } finally {
+            signingOut = false;
+
+            signOutButtons.forEach(button => {
+                button.disabled = false;
             });
-        } finally { signOutButtons.forEach(button => { button.disabled = false; }); }
-    }
-    signOutButtons.forEach(button => button.addEventListener('click', signOut));
-    fetch('/api/auth/config', { signal: AbortSignal.timeout(15000) }).then(async response => {
-        if (!response.ok) throw new Error();
-        const config = await response.json();
-        if (!config.available) { status.textContent = config.message; return; }
-        client = window.supabase.createClient(config.url, config.publishableKey, {
-            auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-        });
-        googleAvailable = config.googleEnabled !== false;
-        google.disabled = !googleAvailable;
-        status.textContent = config.googleEnabled === false
-            ? 'O login Google ainda não foi habilitado pela equipe do site. Continue como visitante.'
-            : 'Ao continuar, você será direcionado ao Google para autorizar o acesso à sua conta.';
-        client.auth.onAuthStateChange(() => { ++verificationId; setTimeout(verifySession, 0); });
-        await verifySession();
-        const query = new URLSearchParams(location.search);
-        if (query.has('error') || location.hash.includes('error=')) {
-            status.textContent = 'O login foi cancelado ou não pôde ser concluído. Você pode continuar como visitante.';
-            render(null);
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('account-modal')).show();
-            history.replaceState(null, '', location.pathname + '#chat-panel');
         }
-    }).catch(() => { status.textContent = 'O acesso à conta está indisponível no momento. As consultas continuam disponíveis como visitante.'; });
+    }
+
+    signOutButtons.forEach(button => {
+        button.addEventListener('click', signOut);
+    });
+
+    async function initializeAuth() {
+        if (google) google.disabled = true;
+
+        try {
+            const response = await fetch('/api/auth/config', {
+                cache: 'no-store',
+                signal: AbortSignal.timeout(15000)
+            });
+
+            if (!response.ok) {
+                throw new Error('Configuração indisponível');
+            }
+
+            const config = await response.json();
+
+            if (!config.available) {
+                setStatus(
+                    config.message ||
+                    'O login está indisponível. Continue como visitante.'
+                );
+                return;
+            }
+
+            if (!window.supabase?.createClient) {
+                throw new Error('Biblioteca de autenticação indisponível');
+            }
+
+            client = window.supabase.createClient(
+                config.url,
+                config.publishableKey,
+                {
+                    auth: {
+                        flowType: 'pkce',
+                        persistSession: true,
+                        autoRefreshToken: true,
+                        detectSessionInUrl: true
+                    }
+                }
+            );
+
+            googleAvailable = config.googleEnabled !== false;
+
+            if (google) google.disabled = !googleAvailable;
+
+            setStatus(
+                googleAvailable
+                    ? 'Entre com Google ou continue como visitante.'
+                    : 'O login Google ainda não foi habilitado. Continue como visitante.'
+            );
+
+            client.auth.onAuthStateChange(event => {
+                // Mantém o callback síncrono; verifica fora dele.
+                if (event === 'SIGNED_OUT') {
+                    ++verificationId;
+                    clearTimeout(verificationTimer);
+                    clearPendingWelcome();
+                    render(null);
+                    return;
+                }
+
+                if (
+                    event === 'SIGNED_IN' ||
+                    event === 'TOKEN_REFRESHED' ||
+                    event === 'USER_UPDATED'
+                ) {
+                    ++verificationId;
+                    scheduleVerification();
+                }
+            });
+
+            await verifySession();
+
+            if (hasAuthError) {
+                clearPendingWelcome();
+
+                setStatus(
+                    'O login foi cancelado ou não pôde ser concluído. Você pode tentar novamente ou continuar como visitante.'
+                );
+
+                const modal = document.getElementById('account-modal');
+
+                if (modal && window.bootstrap?.Modal) {
+                    window.bootstrap.Modal.getOrCreateInstance(modal).show();
+                }
+
+                const url = new URL(location.href);
+
+                ['error', 'error_code', 'error_description'].forEach(key => {
+                    url.searchParams.delete(key);
+                });
+
+                url.hash = 'chat-panel';
+                history.replaceState(null, '', url.pathname + url.search + url.hash);
+            }
+        } catch {
+            setStatus(
+                'O acesso à conta está indisponível no momento. As consultas continuam disponíveis como visitante.'
+            );
+        }
+    }
+
+    void initializeAuth();
 });

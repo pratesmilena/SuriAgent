@@ -20,9 +20,9 @@ O navegador usa o SDK Supabase instalado, servido localmente, e OAuth com PKCE. 
 
 `GET /api/auth/config` fornece somente URL e chave publicável. Nunca fornece chave administrativa ou chave de IA. Quando a variável do ambiente for um placeholder de proxy, configure `SUPABASE_AUTH_PUBLISHABLE_KEY` com a chave pública direta nas variáveis do ambiente; ela é pública por definição e será enviada ao navegador. Não use service_role ou sb_secret. A mesma chave publishable pode ser usada pelo backend e pelo cliente Auth, respeitando RLS.
 
-## Ativar o Google no Supabase (etapa administrativa pendente)
+## Configurar o Google em outro ambiente
 
-A consulta real a `/auth/v1/settings` confirmou `external.google=false`. O aplicativo detecta esse estado, informa que o Google ainda não foi habilitado e mantém o botão de visitante disponível. O assistente não possui acesso administrativo para habilitar o provedor.
+No projeto SuriAgent, `/auth/v1/settings` indica que o Google está habilitado e que novos cadastros são permitidos. O primeiro login cria a conta no Supabase Auth. Se o provedor estiver desabilitado em outro ambiente, a aplicação informa isso e mantém o acesso como visitante.
 
 1. No Google Cloud Console, configure a tela de consentimento OAuth do projeto e crie um cliente OAuth do tipo aplicação Web. Se o aplicativo estiver em testes, inclua as contas que poderão testá-lo conforme as regras do Google.
 2. Em URIs de redirecionamento autorizados desse cliente, coloque exatamente `https://tjqcltzfqqeveztdumsb.supabase.co/auth/v1/callback` (ou o callback que o painel Supabase indicar).
@@ -39,7 +39,7 @@ A consulta real a `/auth/v1/settings` confirmou `external.google=false`. O aplic
 
 Após confirmar a sessão com getUser, o cabeçalho indica Perfil conectado e oferece Meu perfil. O nome, o e-mail da própria conta e Sair do perfil ficam somente na janela Seu perfil SuriAgent, acessível também pelo menu lateral. Após um login iniciado no site e confirmado pelo Supabase, uma notificação de boas-vindas aparece por cinco segundos e pode ser fechada antes. Ela não reaparece só por atualizar a página ou restaurar a sessão. A faixa de boas-vindas foi removida das páginas de conteúdo.
 
-A ação de sair usa signOut com escopo local: encerra o perfil neste dispositivo e restaura o modo visitante, sem sair da conta Google em outros serviços. A restauração da sessão ao recarregar usa novamente o serviço Auth para confirmar o usuário. Falhas de saída mostram um aviso separado e não substituem o nome da conta por uma mensagem de erro. Dados de nome e e-mail são inseridos como texto, sem interpretar HTML; ao sair, são removidos da interface. Não foram criadas tabelas novas nem armazenamento público de perfis.
+A ação de sair usa signOut com escopo local: encerra o perfil neste dispositivo e restaura o modo visitante, sem sair da conta Google em outros serviços. A restauração da sessão ao recarregar usa novamente o serviço Auth para confirmar o usuário. Falhas de saída mostram um aviso separado e não substituem o nome da conta por uma mensagem de erro. Dados de nome e e-mail são inseridos como texto, sem interpretar HTML; ao sair, são removidos da interface. O Supabase sincroniza as contas de Auth com a tabela existente `public.suri_perfis`. A interface consulta somente nome e e-mail do usuário confirmado, e a política de leitura da tabela limita o acesso ao próprio perfil. Se a consulta falhar ou a linha estiver ausente, a janela usa os dados da conta confirmada pelo Auth.
 
 A validação visual de sessão restaurada, nome, boas-vindas, modal, falha de logout, nova entrada e saída foi feita com SDK/sessão simulados no Chromium; o assistente não entrou na conta Google da responsável. O modo visitante e as consultas públicas permanecem disponíveis.
 

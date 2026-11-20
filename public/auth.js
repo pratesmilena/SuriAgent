@@ -76,9 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function render(user) {
+    function render(user, profile) {
         const metadata = user?.user_metadata || {};
         const candidate = [
+            profile?.nome,
             metadata.full_name,
             metadata.name,
             user?.email?.split('@')[0]
@@ -96,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setText('account-name', user ? name : '');
         setText(
             'account-email',
-            user && typeof user.email === 'string' ? user.email : ''
+            user ? profile?.email ?? user.email ?? '' : ''
         );
 
         setText('sidebar-profile-name', 'Aprenda do seu jeito');
@@ -123,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'account-description',
             user
                 ? 'Esta é a sua conta conectada ao SuriAgent.'
-                : 'Entre com sua conta ou continue explorando como visitante.'
+                : 'Entre ou crie sua conta com Google. Você também pode continuar como visitante.'
         );
 
         setHidden('visitor-divider', !!user);
@@ -189,8 +190,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Exibe a conta confirmada mesmo se a consulta do perfil estiver lenta.
         render(user);
         setStatus('');
+
+        try {
+            const { data: profile, error } = await client
+                .from('suri_perfis')
+                .select('nome, email')
+                .eq('id', user.id)
+                .abortSignal(AbortSignal.timeout(5000))
+                .maybeSingle();
+
+            if (current === verificationId && !error && profile) {
+                render(user, profile);
+            }
+        } catch {
+            // O perfil do Auth continua disponível se a Data API falhar.
+        }
     }
 
     function scheduleVerification() {
@@ -341,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setStatus(
                 googleAvailable
-                    ? 'Entre com Google ou continue como visitante.'
+                    ? 'O primeiro acesso com Google cria sua conta.'
                     : 'O login Google ainda não foi habilitado. Continue como visitante.'
             );
 

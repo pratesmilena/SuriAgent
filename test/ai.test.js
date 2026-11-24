@@ -113,3 +113,40 @@ test('Google Search usa ferramenta nativa no servidor e preserva metadados de ev
   return{ok:true,json:async()=>({candidates:[{content:{parts:[{text:'Resultado de teste'}]},groundingMetadata:grounding}]})};
  }});assert.deepEqual(r.grounding,grounding);
 });
+
+test('Ollama envia mensagens no formato nativo e normaliza resposta', async () => {
+    let calledUrl, payload, headers;
+    const result = await generateAnswer({ provider:'ollama', message:'Explique JavaScript.', env:{OLLAMA_MODEL:'qwen2.5:3b',OLLAMA_BASE_URL:'http://127.0.0.1:11434/'}, fetchImpl:async(url,options)=>{
+        calledUrl=url; payload=JSON.parse(options.body); headers=options.headers;
+        return {ok:true,json:async()=>({model:'qwen2.5:3b',message:{role:'assistant',content:'JavaScript é uma linguagem de programação.'}})};
+    }});
+    assert.equal(calledUrl,'http://127.0.0.1:11434/api/chat');
+    assert.equal(payload.model,'qwen2.5:3b'); assert.equal(payload.stream,false);
+    assert.equal(payload.messages[0].role,'system'); assert.equal(payload.messages[1].content,'Explique JavaScript.');
+    assert.equal(headers['Content-Type'],'application/json'); assert.equal(headers.Authorization,undefined);
+    assert.equal(result.provider,'ollama'); assert.equal(result.model,'qwen2.5:3b');
+    assert.equal(result.solucao,'JavaScript é uma linguagem de programação.');
+});
+
+test('Ollama não exige chave e aparece como opção local na configuração',()=>{
+    const config=publicConfig({AI_PROVIDER:'ollama',OLLAMA_MODEL:'llama3.2'});
+    assert.equal(config.defaultProvider,'ollama');
+    const ollama=config.providers.find(item=>item.id==='ollama');
+    assert.equal(ollama.available,true); assert.equal(ollama.model,'llama3.2');
+});
+
+test('Ollama retorna erro orientativo quando o serviço local não responde',async()=>{
+    await assert.rejects(generateAnswer({provider:'ollama',message:'Oi',env:{},fetchImpl:async()=>{throw new Error('connection refused')}}),{status:503,message:/aplicativo está aberto/});
+});
+
+test('Ollama identifica modelo ausente e não revela detalhes do servidor',async()=>{
+    await assert.rejects(generateAnswer({provider:'ollama',message:'Oi',env:{OLLAMA_MODEL:'modelo-ausente'},fetchImpl:async()=>({ok:false,status:404})}),{status:503,message:/ollama pull modelo-ausente/});
+});
+
+test('Ollama valida URL de serviço e permite saída JSON estruturada',async()=>{
+    await assert.rejects(generateAnswer({provider:'ollama',message:'Oi',env:{OLLAMA_BASE_URL:'file:///tmp'},fetchImpl:()=>assert.fail('URL inválida não deve chamar fetch')}),{status:503});
+    await generateAnswer({provider:'ollama',message:'Responda em JSON',jsonOutput:true,env:{},fetchImpl:async(url,options)=>{
+        assert.equal(JSON.parse(options.body).format,'json');
+        return {ok:true,json:async()=>({message:{content:'{"ok":true}'}})};
+    }});
+});

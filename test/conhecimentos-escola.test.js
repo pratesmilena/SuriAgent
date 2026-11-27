@@ -31,8 +31,8 @@ test('resposta de cursos é sucinta e inclui os itinerários informados sem cens
  const result=await consultarConteudos('cursos','Quais cursos a escola oferece?',db);
  const texto=require('../conteudos-escola').formatarConteudos(result);
  assert.equal(result.registros.length,1);
- for(const trecho of ['1ª a 3ª','Técnico em Desenvolvimento de Sistemas','2º ano'])assert.ok(texto.includes(trecho));
- assert.doesNotMatch(texto,/matrículas|07:00|horarios_aulas|Resumo da Escola|Fundamental|Linguagens \/ Humanas|Exatas \/ Natureza/);
+ for(const trecho of ['1ª a 3ª','Técnico em Desenvolvimento de Sistemas','Linguagens / Humanas','Exatas / Natureza','2º ano'])assert.ok(texto.includes(trecho));
+ assert.doesNotMatch(texto,/matrículas|07:00|horarios_aulas|Resumo da Escola|Fundamental/);
  assert.equal((texto.match(/Cursos oferecidos/g)||[]).length,0);
  assert.doesNotMatch(texto,/Fonte:|responsável/);assert.match(result.registros[0].fonte,/responsável/);
 });
@@ -53,4 +53,16 @@ test('conteúdo de conhecimentos é exibido literalmente, sem títulos nem categ
   const result=await consultarConteudos(topico,pergunta,db);
   assert.equal(formatarConteudos(result),conteudo);
  }
+});
+
+test('pergunta geral mostra os três itinerários, pergunta sobre tarde mantém oferta do turno',async t=>{
+ const db=await banco(t,[{id:9,categoria:'FAQ',conteudo:'Etapas Ensino Médio'}]);
+ const geral=await consultarConteudos('cursos','Quais cursos e itinerários formativos a escola oferece?',db);
+ const tarde=await consultarConteudos('cursos','Quais itinerários formativos tem no período da tarde?',db);
+ const {formatarConteudos}=require('../conteudos-escola');
+ const geralTexto=formatarConteudos(geral), tardeTexto=formatarConteudos(tarde);
+ for(const nome of ['Linguagens / Humanas','Exatas / Natureza','Técnico em Desenvolvimento de Sistemas'])assert.ok(geralTexto.includes(nome));
+ assert.match(geralTexto,/escolha no 1º ano/);
+ assert.doesNotMatch(tardeTexto,/Linguagens \/ Humanas|Exatas \/ Natureza/);
+ assert.match(tardeTexto,/Técnico em Desenvolvimento de Sistemas/);
 });

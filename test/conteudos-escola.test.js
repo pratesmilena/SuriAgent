@@ -41,7 +41,7 @@ test('eventos gerais aparecem sem inventar uma data para o calendário',async t=
 test('linguagem dos índices reconhece os temas equivalentes fornecidos pela escola',()=>{
  const exemplos={
   historia:['Qual é a origem da escola?','Por que a escola é conhecida como Ina?'],
-  cursos:['Quais são os itinerários formativos?','Quais turnos a escola oferece?','Tem curso técnico em Desenvolvimento de Sistemas?'],
+  cursos:['Quais são os itinerários formativos?','Quando escolhemos o itinerário?','Em que ano escolhe o itinerário formativo?','Quais turnos a escola oferece?','Tem curso técnico em Desenvolvimento de Sistemas?'],
   projetos:['O que é o Projeto Político-Pedagógico?','Há projetos de leitura?','Como são as ações com a comunidade?'],
   ambiente:['Como é a entrada e saída?','Como é o convívio na escola?'],
   eventos:['Quando será o Show de Talentos?','Tem Interclasse?','Quando é a reunião de pais?','Quais são as datas de provas pendentes?'],

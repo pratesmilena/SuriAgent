@@ -66,3 +66,14 @@ test('pergunta geral mostra os três itinerários, pergunta sobre tarde mantém 
  assert.doesNotMatch(tardeTexto,/Linguagens \/ Humanas|Exatas \/ Natureza/);
  assert.match(tardeTexto,/Técnico em Desenvolvimento de Sistemas/);
 });
+
+test('responde itinerários e ano de escolha mesmo sem registro ID 9 disponível',async t=>{
+ const db=await banco(t,[{id:4,categoria:'Contato e Endereço',titulo:'Contato',conteudo:'Secretaria'}]);
+ const geral=await consultarConteudos('cursos','Quais cursos e itinerários formativos a escola oferece?',db);
+ const escolha=await consultarConteudos('cursos','Quando escolhemos o itinerário formativo?',db);
+ const {formatarConteudos}=require('../conteudos-escola');
+ const textoGeral=formatarConteudos(geral), textoEscolha=formatarConteudos(escolha);
+ for(const nome of ['Linguagens / Humanas','Exatas / Natureza','Técnico em Desenvolvimento de Sistemas'])assert.ok(textoGeral.includes(nome));
+ assert.match(textoEscolha,/Escolha no 1º ano/);
+ assert.match(textoEscolha,/a partir do 2º ano/);
+});

@@ -17,17 +17,20 @@ async function consultarConhecimentos(topico, pergunta = '', source = getSupabas
     if (topico === 'historia' && !rows.length) return { topico, status: 'disponivel', registros: [{ ...historia }], total: 1 };
     if (topico === 'cursos') {
         const turnos = /turnos?|periodos?/.test(normalizar(pergunta));
-        const turnoTarde = /\b(?:tarde|vespertino)\b/.test(normalizar(pergunta));
-        const perguntaItinerarios = /itinerarios?|formativos?|linguagens|humanas|exatas|natureza|desenvolvimento de sistemas|escolh.{0,25}itinerario|(?:quando|em que ano).{0,30}itinerario/.test(normalizar(pergunta));
-        if (!turnos && rows.some(row => Number(row.id) === 9)) {
-            // A oferta atual informada pela responsável substitui o texto antigo do banco.
-            // Perguntas gerais exibem os três itinerários; somente perguntas explícitas sobre o turno da tarde limitam a oferta.
+        const turnoTarde = /\\b(?:tarde|vespertino)\\b/.test(normalizar(pergunta));
+        const textoPergunta = normalizar(pergunta);
+        const perguntaItinerarios = /itinerarios?|formativos?|linguagens|humanas|exatas|natureza|desenvolvimento de sistemas|escolh.{0,25}itinerario|(?:quando|em que ano).{0,30}itinerario/.test(textoPergunta);
+        const perguntaEscolha = /(?:quando|em que ano|qual ano|que ano).{0,35}(?:escolhe|escolher|seleciona|itinerario)|(?:escolhe|escolher|seleciona).{0,35}(?:itinerario|trilha)/.test(textoPergunta);
+        // As informações dos itinerários e da escolha estão confirmadas no arquivo de configuração,
+        // portanto não dependem de o registro de cursos (ID 9) estar acessível no Supabase.
+        if (!turnos && (perguntaItinerarios || perguntaEscolha || rows.some(row => Number(row.id) === 9))) {
             const listaItinerarios = turnoTarde ? cursos.itinerariosTarde : cursos.itinerarios;
-            const detalhesItinerarios = perguntaItinerarios
-                ? '\n\nItinerários formativos (' + cursos.inicioItinerarios.toLowerCase() + '):\n' + listaItinerarios.map(x => '• ' + x).join('\n')
-                : '\n\nItinerários formativos:\n' + listaItinerarios.map(x => '• ' + x).join('\n');
+            const detalhesItinerarios = perguntaEscolha
+                ? '\\n\\n' + cursos.inicioItinerarios + '.'
+                : '\\n\\nItinerários formativos:\\n' + listaItinerarios.map(x => '• ' + x).join('\\n')
+                    + (perguntaItinerarios ? '\\n\\n' + cursos.inicioItinerarios + '.' : '');
             return { topico, status: 'disponivel', registros: [{ titulo: 'Cursos oferecidos',
-                conteudo: cursos.etapasTarde.map(x => '• ' + x).join('\n') + detalhesItinerarios,
+                conteudo: cursos.etapasTarde.map(x => '• ' + x).join('\\n') + detalhesItinerarios,
                 fonte: cursos.fonte }], total: 1, resposta_sucinta: true };
         }
         rows = rows.filter(row => normalizar(row.categoria) === 'cursos' || Number(row.id) === (turnos ? 13 : 9));
